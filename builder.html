@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1200">
+<title>Maze Builder - Build or Survive</title>
+<meta name="description" content="Build one floor of Maze of Gains, then try to survive it with the real rules. Share the floor as a link and see who survives.">
+<meta name="theme-color" content="#0f0c2a">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Maze Builder - Build or Survive">
+<meta property="og:url" content="https://buildorsurvive.xyz/builder.html">
+<meta property="og:description" content="Build one floor of Maze of Gains, then try to survive it with the real rules. Share the floor and see who survives.">
+<meta property="og:image" content="https://buildorsurvive.xyz/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Maze Builder - Build or Survive">
+<meta name="twitter:description" content="Build one floor of Maze of Gains, then try to survive it. Share the floor and see who survives.">
+<meta name="twitter:image" content="https://buildorsurvive.xyz/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.92em' font-size='88'%3E%F0%9F%8C%BD%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   1. Tokens & base (same visual system as index.html)
+   ========================================================= */
+:root{
+  --bg0:#07061a; --card:#1b1740; --card2:#241d58; --line:#3a2f7d; --line2:#5343a8;
+  --corn:#FFC42D; --corn2:#ffe08a; --corn3:#b07a00;
+  --coral:#ff4f6d; --mint:#43e8a4; --cyan:#3fd9ff; --orange:#ff9b3d; --violet:#a78bfa;
+  --text:#f5f2ff; --muted:#bdb7dc; --dim:#8a83b3;
+  --font-pixel:'Press Start 2P',ui-monospace,'Courier New',monospace;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --radius:20px; --gutter:20px; --tile:32px; --topbar:64px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--text);font:400 16px/1.5 var(--font-body);background:var(--bg0);overflow-x:hidden}
+[hidden]{display:none!important}
+button{font-family:inherit}
+b,strong{font-weight:900}
+kbd{font:800 11px/1 var(--font-body);padding:3px 6px;border-radius:6px;background:#0d0b22;border:1px solid var(--line2);color:var(--corn2)}
+::selection{background:var(--corn);color:#1a1440}
+
+/* Background: gradient wash + faint grid + drifting corn kernels */
+body::before{content:'';position:fixed;inset:0;z-index:-3;
+  background:radial-gradient(1100px 560px at 50% -140px,rgba(103,76,232,.55),transparent 65%),
+             radial-gradient(700px 460px at 100% 100%,rgba(255,196,45,.12),transparent 60%),
+             radial-gradient(600px 400px at 0% 80%,rgba(63,217,255,.08),transparent 60%),
+             linear-gradient(180deg,#140f36 0%,#0c0924 45%,#07061a 100%)}
+.bg-grid{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:40px 40px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 15%,#000 15%,transparent 72%);mask-image:radial-gradient(ellipse at 50% 15%,#000 15%,transparent 72%)}
+.particles{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.particles i{position:absolute;left:var(--x);bottom:-30px;width:var(--s);height:calc(var(--s)*1.35);border-radius:35%;
+  background:var(--pc,var(--corn));opacity:var(--o,.5);box-shadow:0 0 10px var(--pc,var(--corn));
+  animation:rise var(--d,22s) linear var(--delay,0s) infinite;will-change:transform}
+@keyframes rise{0%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(28px,-58vh,0) rotate(200deg)}100%{transform:translate3d(-20px,-118vh,0) rotate(400deg)}}
+
+/* =========================================================
+   2. Top bar, layout, buttons
+   ========================================================= */
+.topbar{position:sticky;top:0;z-index:20;height:var(--topbar);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 var(--gutter);
+  background:rgba(9,7,28,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07)}
+.topbar-inner{width:100%;max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font:15px/1 var(--font-pixel);color:var(--corn);background:none;border:0;cursor:pointer;padding:6px 0;text-shadow:0 2px 0 #5c3d00,0 0 14px rgba(255,196,45,.35);letter-spacing:.5px;text-decoration:none}
+.brand .corn{font-size:22px;filter:drop-shadow(0 0 6px rgba(255,196,45,.6))}
+.brand:hover .txt{color:var(--corn2)}
+.brand-wrap{grid-column:2;justify-self:center;display:flex;align-items:center;gap:16px;min-width:0}
+.mode-tag{font:10px/1 var(--font-pixel);color:var(--violet);letter-spacing:1px;padding:8px 10px;border:1.5px solid var(--line2);border-radius:8px;background:rgba(167,139,250,.12);white-space:nowrap}
+.credit{display:inline-flex;align-items:center;gap:6px;font:800 12.5px var(--font-body);color:var(--muted);text-decoration:none;white-space:nowrap;border-bottom:1.5px solid transparent;transition:color .2s,border-color .2s}
+.credit .x-logo{font-size:14px;color:#fff;font-weight:900}
+.credit:hover,.credit:focus-visible{color:var(--corn2);border-bottom-color:var(--corn2)}
+footer .credit{font-size:13.5px}
+.topbar-actions{grid-column:3;justify-self:end;display:flex;gap:8px}
+.icon-btn{min-width:44px;min-height:44px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.05);color:var(--text);font:800 13px var(--font-body);padding:0 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color .2s,color .2s,transform .08s}
+.icon-btn:hover{border-color:var(--corn);color:var(--corn2)}
+.icon-btn:active{transform:translateY(1px)}
+.icon-btn.sel{border-color:var(--corn);color:var(--corn2);background:rgba(255,196,45,.12)}
+
+main{max-width:1240px;margin:0 auto;padding:24px var(--gutter) 60px}
+.screen{display:none}
+.screen.active{display:block;animation:screenIn .4s cubic-bezier(.2,.8,.2,1)}
+@keyframes screenIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:12px 24px;border-radius:14px;border:3px solid transparent;
+  font:900 16px/1.2 var(--font-body);color:var(--text);cursor:pointer;text-decoration:none;transition:transform .08s,box-shadow .2s,filter .2s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:translateY(3px)}
+.btn-primary{background:linear-gradient(180deg,#ffdb6e 0%,var(--corn) 55%,#f2ac00 100%);color:#1a1440;border-color:#fff1bf;
+  box-shadow:0 6px 0 #a87400,0 12px 30px rgba(255,196,45,.35)}
+.btn-primary:hover{filter:brightness(1.06);box-shadow:0 6px 0 #a87400,0 14px 40px rgba(255,196,45,.5)}
+.btn-primary:active{box-shadow:0 2px 0 #a87400,0 6px 16px rgba(255,196,45,.35)}
+.btn-primary:disabled{filter:saturate(.3) brightness(.7);cursor:not-allowed;box-shadow:0 4px 0 #5a4a1a;transform:none}
+.btn-ghost{background:rgba(255,255,255,.06);border-color:var(--line2)}
+.btn-ghost:hover{border-color:var(--corn);color:var(--corn2)}
+.btn-ghost:disabled{opacity:.45;cursor:not-allowed}
+.btn-x{background:#000;border-color:#3a3a4a;color:#fff}
+.btn-x:hover{border-color:#fff}
+.btn-xl{min-height:64px;padding:16px 34px;font:14px/1.4 var(--font-pixel);letter-spacing:.5px}
+.btn-lg{min-height:58px;padding:14px 28px;font-size:17px}
+.btn-sm{min-height:42px;padding:8px 16px;font-size:14px;border-radius:12px;border-width:2px}
+.btn:focus-visible,.opt:focus-visible,.icon-btn:focus-visible,.pal:focus-visible,.tab:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+
+/* =========================================================
+   3. Cards, chips, grid (from the quiz)
+   ========================================================= */
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:3px solid var(--line);border-radius:var(--radius);
+  box-shadow:0 24px 60px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);padding:22px;scroll-margin-top:calc(var(--topbar) + 12px)}
+.q-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px 20px;margin-bottom:14px}
+.q-head-main{flex:1 1 420px;min-width:0}
+.q-num{font:10px var(--font-pixel);color:var(--violet);letter-spacing:1px}
+.q-title{margin:8px 0 6px;font-size:clamp(22px,2.4vw,30px);font-weight:900;line-height:1.2}
+.q-hook{margin:0;color:var(--muted);font-weight:600;font-size:16px;max-width:760px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.14);
+  font-size:13.5px;font-weight:800;white-space:nowrap;line-height:1.2}
+.chip b{font-weight:900}
+.chip-energy{border-color:rgba(63,217,255,.5);color:#d8f7ff}
+.chip-atk{border-color:rgba(255,79,109,.5);color:#ffd9e0}
+.chip-item{border-color:rgba(167,139,250,.6);color:#e6dcff}
+.chip-muted{color:var(--dim);border-style:dashed}
+.chip-corn{border-color:rgba(255,196,45,.55);color:#ffe9b0}
+.chip-coin{border-color:rgba(255,155,61,.5);color:#ffe0c2}
+.chip-trap{border-color:rgba(255,79,109,.45);color:#ffd9e0}
+.chip-weather{border-color:rgba(63,217,255,.5);color:#d8f7ff}
+.chip-turn{border-color:rgba(255,255,255,.2)}
+.stats-lbl{font:9px var(--font-pixel);color:var(--dim);letter-spacing:.5px;margin-right:4px}
+
+/* The board column is fixed (720px incl. frame, or what is left after a 380px side column); the tile size adapts to the grid, never the layout */
+.q-grid{display:grid;grid-template-columns:min(720px,calc(100% - 406px)) minmax(380px,1fr);gap:26px;align-items:start}
+.q-board-col{min-width:0;position:relative}
+.q-side{display:flex;flex-direction:column;gap:14px;min-width:0;position:relative}
+@media(min-width:1080px){.q-board-col{position:sticky;top:calc(var(--topbar) + 14px)}}
+
+.board-wrap{--frame-pad:10px;width:100%;margin:0 auto;padding:var(--frame-pad);border-radius:18px;border:3px solid var(--line2);background:#0c0a22;
+  box-shadow:inset 0 0 40px rgba(0,0,0,.6),0 0 0 5px rgba(120,90,255,.08),0 16px 40px rgba(0,0,0,.4);display:flex;justify-content:center;overflow:hidden}
+.board-caption{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;margin:10px 4px 0;font-size:12.5px;color:var(--dim);font-weight:700}
+.board-caption span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+.swatch.tg{background:rgba(255,0,60,.35);box-shadow:inset 0 0 0 1px rgba(255,0,60,.8)}
+.swatch.pre{width:auto;height:auto;background:none;border-radius:0;color:#ff8c09;font-weight:900;font-size:14px;line-height:1;-webkit-text-stroke:.5px #000}
+.swatch.dir{width:0;height:0;border-radius:0;background:none;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid #f51d6a}
+
+/* ---- Board & tiles: the game's tileset (assets/tiles.md), auto-tiled; --u = one game pixel ---- */
+.board{--u:calc(var(--tile)/32);display:grid;grid-auto-rows:var(--tile);gap:0;position:relative;border-radius:6px;overflow:hidden;background:#000}
+.tile{position:relative;width:var(--tile);height:var(--tile)}
+.tbg,.tsh{position:absolute;inset:0;z-index:0;pointer-events:none}
+.tbg{background-position:center;background-size:100% 100%;background-repeat:no-repeat;image-rendering:pixelated}
+.tile.chk .tbg{filter:brightness(.88)}
+.tsh{background-repeat:no-repeat;background-size:100% 100%}
+.r-floor .tbg.nobg{background:#2aa79f}.r-floor.odd .tbg.nobg{background:#25938c}
+.r-face .tbg.nobg{background:#55667f;box-shadow:inset 0 -3px 0 #3a4658,inset 0 0 0 1px #2b3547}
+.r-top .tbg.nobg{background:#0b3f57}
+.r-bottom .tbg.nobg,.r-side .tbg.nobg,.r-corner .tbg.nobg{background:#0e4a63;box-shadow:inset 0 0 0 1px #4c3c84}
+.r-fog .tbg.nobg{background:#000}
+.ent{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.sw{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.cue{pointer-events:none}
+.cue-reveal,.cue-explode{z-index:1}
+.trap{z-index:2}.torch{z-index:3;pointer-events:none}.obj{z-index:3}.pickup{z-index:4}.enemy{z-index:5}.player{z-index:6}
+.cue-pre,.cue-dir,.cue-aoe{z-index:9}
+.spr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;pointer-events:none;max-width:none;user-select:none}
+.spr.anchor-bottom{top:auto;bottom:0;transform:translateX(-50%)}
+.spr-icon{image-rendering:pixelated;vertical-align:middle;object-fit:contain;flex:0 0 auto}
+.torch .spr{top:75%}
+.torch .spr.f1{animation:flick .4s steps(1) infinite}
+@keyframes flick{0%,49%{opacity:0}50%,100%{opacity:1}}
+.torch .glow{position:absolute;left:50%;top:75%;width:calc(var(--tile)*3);height:calc(var(--tile)*3);transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,176,92,.30),rgba(255,176,92,.105) 50%,rgba(255,176,92,0) 70%);mix-blend-mode:screen;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:translate(-50%,-50%) scale(.94)}50%{transform:translate(-50%,-50%) scale(1.06)}}
+.torch.fb .flame{position:absolute;left:50%;top:75%;width:calc(var(--u)*6px);height:calc(var(--u)*10px);transform:translate(-50%,-50%);border-radius:50% 50% 40% 40%;background:#ffb04d;box-shadow:0 0 6px #ff8c1a}
+.hpbar{position:absolute;left:50%;top:calc(var(--u)*-7px);width:calc(var(--u)*26px);height:calc(var(--u)*7px);transform:translateX(-50%);background:#000;border-radius:calc(var(--u)*2px);z-index:3;pointer-events:none}
+.hpbar .track{position:absolute;left:calc(var(--u)*1px);top:calc(var(--u)*1px);width:calc(var(--u)*24px);height:calc(var(--u)*5px);background:rgb(64,32,40);border-radius:calc(var(--u)*1px);overflow:hidden}
+.hpbar .fill{position:absolute;left:0;top:0;height:100%;background:#ff4d6d;border-radius:calc(var(--u)*1px)}
+.hpbar .tick{position:absolute;top:0;width:calc(var(--u)*1px);height:100%;background:#000}
+.shield{position:absolute;right:calc(var(--u)*-1px);top:calc(var(--u)*-8px);display:flex;align-items:center;gap:1px;z-index:3;pointer-events:none}
+.shield svg{width:calc(var(--u)*11px);height:calc(var(--u)*13px);display:block}
+.shield b{font:900 max(8px,calc(var(--u)*8px))/1 ui-monospace,monospace;color:#eaffff;text-shadow:0 0 2px #06323f,0 0 2px #06323f,0 0 1px #06323f}
+.enemy.shielded .sw img{filter:sepia(1) hue-rotate(160deg) saturate(2.2) brightness(1.15)}
+.enemy.inv .sw{opacity:.9}
+.ice-spr{position:absolute;inset:0;z-index:2;pointer-events:none}
+.glyph{font-size:calc(var(--tile)*.6);line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+.obj svg,.trap svg{width:calc(var(--tile)*.86);height:calc(var(--tile)*.86);display:block}
+.o-stalk::before{content:'';position:absolute;left:22%;right:22%;bottom:6%;height:30%;border-radius:20% 20% 40% 40%;background:#6f4520}
+.fb-badge{width:calc(var(--tile)*.76);height:calc(var(--tile)*.76);border-radius:50%;display:grid;place-items:center;font-size:calc(var(--tile)*.42);line-height:1;background:#14112e;border:2px solid var(--c,#e8e4ff)}
+.player .fb-badge{background:#ffd75e;border-color:#fff6d6}
+.player .fb-badge svg{width:82%;height:82%;display:block}
+.orb{border-radius:50%;background:#7fe8ff;box-shadow:0 0 0 2px #1d6f86}
+.orb-s{width:calc(var(--tile)*.4);height:calc(var(--tile)*.4)}.orb-l{width:calc(var(--tile)*.6);height:calc(var(--tile)*.6)}
+.pk{font-size:calc(var(--tile)*.5)}
+.ice{position:absolute;inset:8%;border-radius:18%;background:rgba(160,220,255,.45);border:2px solid rgba(215,242,255,.95);z-index:2;pointer-events:none}
+.trap.up .spr{filter:brightness(1.4) drop-shadow(0 0 3px rgba(255,79,109,.9))}
+.trap.arrow-up .spr{transform:translate(-50%,-50%) rotate(-90deg)}
+.trap.arrow-down .spr{transform:translate(-50%,-50%) rotate(90deg)}
+.trap.arrow-left .spr{transform:translate(-50%,-50%) rotate(180deg)}
+.trap .dir-mark{position:absolute;right:2px;bottom:1px;font:900 calc(var(--tile)*.28)/1 var(--font-body);color:#ffd9e0;text-shadow:0 1px 2px #000;pointer-events:none}
+/* Cues at the ATTACKER's tile like the game: "!" above (last charge turn), direction triangle on the edge, cross composite, explosion floor cue */
+.cue-pre .spr{top:calc(50% - var(--u)*30px);opacity:.8}
+.cue-pre.fb::before{content:'!';position:absolute;left:50%;top:calc(50% - var(--u)*30px);transform:translate(-50%,-50%);font:900 calc(var(--u)*16px)/1 var(--font-body);color:#ff8c09;-webkit-text-stroke:1px #000;opacity:.8}
+.cue-dir.fb::before{content:'';position:absolute;left:50%;top:0;transform:translateX(-50%);border:calc(var(--u)*5px) solid transparent;border-top:0;border-bottom-color:#f51d6a}
+.cue-dir.fb.d-down::before{top:auto;bottom:0;border-bottom:0;border-top:calc(var(--u)*5px) solid #f51d6a}
+.cue-dir.fb.d-left::before{left:0;top:50%;transform:translateY(-50%);border:calc(var(--u)*5px) solid transparent;border-left:0;border-right-color:#f51d6a}
+.cue-dir.fb.d-right::before{left:auto;right:0;top:50%;transform:translateY(-50%);border:calc(var(--u)*5px) solid transparent;border-right:0;border-left-color:#f51d6a}
+.cue-aoe.fb{box-shadow:inset 0 0 0 2px #f51d6a}
+.cue-reveal.fb,.cue-explode.fb{background:rgba(255,0,60,.2);box-shadow:inset 0 0 0 1px rgba(255,0,60,.5);border-radius:3px}
+.cue-reveal{opacity:0;transition:opacity .35s}
+.board.revealed .cue-reveal,.cue-reveal.shown{opacity:.6}
+/* Outcome animation on the player */
+.player{transition:transform .38s cubic-bezier(.2,.8,.2,1)}
+.player.moved{transform:translate(calc(var(--mx,0)*var(--tile)),calc(var(--my,0)*var(--tile)))}
+.player.lunge{animation:lunge .32s ease}
+@keyframes lunge{0%,100%{transform:none}45%{transform:translate(calc(var(--mx,0)*var(--tile)*.38),calc(var(--my,0)*var(--tile)*.38)) scale(1.08)}}
+.player.bob{animation:bobY .4s ease}
+@keyframes bobY{0%,100%{transform:none}50%{transform:translateY(-15%)}}
+.player.slide{animation:slideIn .18s ease-out}
+@keyframes slideIn{from{transform:translate(calc(var(--mx,0)*var(--tile)*-1),calc(var(--my,0)*var(--tile)*-1))}to{transform:none}}
+.player::after{content:'';position:absolute;inset:0;border-radius:4px;pointer-events:none;background:transparent}
+.board.lethal .player::after{animation:flashRed .45s ease 3}
+.board.hit .player::after{animation:flashOrange .45s ease 2}
+.board.safe .player::after{animation:flashGreen .7s ease 1}
+.board.lethal .player .sw{animation:shake .5s cubic-bezier(.36,.07,.19,.97) 2,dim .5s ease 3}
+.board.lethal .player{filter:saturate(.3) brightness(.7);transition:filter 1.2s ease .8s}
+@keyframes flashRed{0%,100%{background:transparent}50%{background:rgba(255,79,109,.55)}}
+@keyframes flashOrange{0%,100%{background:transparent}50%{background:rgba(255,155,61,.5)}}
+@keyframes flashGreen{0%,100%{background:transparent}40%{background:rgba(67,232,164,.45)}}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(3px)}30%,50%,70%{transform:translateX(-5px)}40%,60%{transform:translateX(5px)}}
+@keyframes dim{0%,100%{filter:none}50%{filter:brightness(1.7) saturate(0)}}
+.enemy.hurt .sw{animation:hurt .35s ease}
+@keyframes hurt{0%,100%{filter:none}40%{filter:brightness(2.2) saturate(.2)}}
+.enemy.dying{pointer-events:none;animation:die .55s ease forwards}
+@keyframes die{0%{opacity:1;filter:brightness(1.8) saturate(0)}100%{opacity:0;transform:scale(.5);filter:brightness(1.8) saturate(0)}}
+
+/* ---- On-board controls: a thin outline + small corner glyph on each reachable tile ---- */
+.act{position:absolute;inset:0;width:100%;height:100%;z-index:8;margin:0;padding:0;background:transparent;border:0;border-radius:3px;cursor:pointer;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.32);transition:background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.act:hover,.act.hl,.act:focus-visible{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 2px rgba(255,255,255,.92);outline:none}
+.act-glyph{position:absolute;top:3px;left:5px;font-size:calc(var(--tile)*.22);line-height:1;color:rgba(255,255,255,.78);text-shadow:0 1px 2px rgba(0,0,0,.9);pointer-events:none}
+.act-attack .act-glyph{color:rgba(255,120,140,.95)}
+.act-break .act-glyph,.act-pickup .act-glyph{color:rgba(255,215,90,.95)}
+.act-pass{box-shadow:none}
+.act-pass .act-glyph{top:auto;bottom:3px;left:auto;right:5px;font-size:calc(var(--tile)*.2)}
+.act-pass:hover,.act-pass.hl,.act-pass:focus-visible{box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
+.board.editing .tile{cursor:crosshair}
+.board.editing .ent.enemy,.board.editing .ent.player,.board.editing .ent.obj,.board.editing .ent.pickup,.board.editing .ent.trap{cursor:help}
+.board .ent.enemy,.board .ent.player,.board .ent.obj,.board .ent.pickup,.board .ent.trap{cursor:help}
+
+/* ---- The move list: the primary readable control ---- */
+.side-title{display:flex;align-items:center;gap:10px;font:11px var(--font-pixel);color:var(--corn2);margin:2px 2px 0;min-width:0}
+.side-title > span:first-child{white-space:nowrap}
+.side-title small{font:700 12px var(--font-body);color:var(--dim);margin-left:auto;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side-actions{display:flex;gap:6px;flex:0 0 auto}
+.side-actions:empty{display:none}
+.side-actions .icon-btn{min-height:34px;min-width:0;padding:0 10px;font-size:12.5px;border-radius:9px;gap:4px;white-space:nowrap}
+.side-help{margin:-4px 2px 0;font-size:13px;color:var(--muted);font-weight:600;line-height:1.4}
+.opt-list{display:flex;flex-direction:column;gap:10px}
+.opt{position:relative;min-height:58px;width:100%;border-radius:14px;border:2px solid var(--line2);background:#241d58;color:var(--text);padding:10px 14px;
+  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:14px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s,transform .08s;-webkit-tap-highlight-color:transparent}
+@media(hover:hover){.opt:hover:not(:disabled),.opt.hl:not(:disabled){border-color:var(--corn);background:#2d2570}}
+.opt:active:not(:disabled){transform:translateY(2px)}
+.opt:disabled{cursor:not-allowed;opacity:.45;background:#17142f}
+.opt:disabled .opt-arrow{color:var(--dim)}
+.opt-arrow{font-size:22px;line-height:1;color:var(--cyan);width:26px;text-align:center;flex:0 0 auto}
+.opt[data-kind="attack"] .opt-arrow{color:var(--coral)}
+.opt[data-kind="pass"] .opt-arrow{color:var(--muted)}
+.opt[data-kind="item"] .opt-arrow{color:var(--violet)}
+.opt[data-kind="break"] .opt-arrow,.opt[data-kind="pickup"] .opt-arrow{color:var(--corn)}
+.opt-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.opt-label{font-weight:900;font-size:16px;line-height:1.15;overflow-wrap:anywhere}
+.opt-sub{font-size:13px;color:var(--muted);font-weight:700;line-height:1.15}
+.opt-kind{margin-left:auto;font-size:9.5px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dim);white-space:nowrap;flex:0 0 auto}
+.opt-pass{border-style:dashed}
+.opt-item{border-color:var(--violet);background:#2b2368}
+.opt-icon{width:36px;height:36px;flex:0 0 auto;display:grid;place-items:center;border-radius:9px;background:rgba(0,0,0,.35)}
+.opt-icon .spr-icon{width:30px;height:30px}
+.keys-hint{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--dim);font-size:12.5px;font-weight:700;margin:2px 2px 0;line-height:1.8}
+.keys-hint span{white-space:nowrap}
+
+/* ---- Event log ---- */
+.log{margin:0 2px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);font-size:13px;color:var(--muted);font-weight:600;line-height:1.5;min-height:52px}
+.log-title{font:9px var(--font-pixel);color:var(--dim);letter-spacing:.5px;margin-bottom:6px}
+.log div.ln{display:flex;gap:8px;align-items:baseline}
+.log div.ln b{color:var(--dim);font-weight:900;flex:0 0 auto;font-size:11px}
+.log div.ln:last-child{color:var(--text)}
+
+/* ---- End card (the quiz's feedback card) ---- */
+.feedback{--vc:var(--mint);border-radius:18px;border:3px solid var(--vc);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--vc) 16%,#1b1740),#1b1740 55%);padding:18px;
+  animation:flipIn .5s cubic-bezier(.2,.8,.2,1);scroll-margin-top:calc(var(--topbar) + 12px);box-shadow:0 14px 40px rgba(0,0,0,.4),0 0 30px color-mix(in srgb,var(--vc) 25%,transparent)}
+.v-best{--vc:var(--mint)}.v-ok{--vc:var(--corn)}.v-bad{--vc:var(--orange)}.v-lethal{--vc:var(--coral)}
+@keyframes flipIn{from{opacity:0;transform:perspective(700px) rotateX(-14deg) translateY(14px)}to{opacity:1;transform:none}}
+.fb-head{display:flex;align-items:center;gap:14px}
+.fb-icon{flex:0 0 auto;width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:var(--vc);color:#1a1440;box-shadow:0 0 18px color-mix(in srgb,var(--vc) 60%,transparent)}
+.v-lethal .fb-icon,.v-bad .fb-icon{color:#fff}
+.fb-titles{flex:1;min-width:0}
+.fb-verdict{font:15px/1.4 var(--font-pixel);color:var(--vc)}
+.fb-choice{color:var(--muted);font-size:14px;font-weight:700;margin-top:4px}
+.fb-stats{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 12px}
+.fb-explain{margin:0;font-size:16px;line-height:1.55}
+.fb-block{margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08)}
+.fb-block p{margin:6px 0 0;font-size:15px;line-height:1.5}
+.fb-tag{display:inline-block;font:9px/1 var(--font-pixel);letter-spacing:.5px;color:var(--corn2);text-transform:uppercase}
+.fb-actions{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px}
+.fb-actions .btn{flex:1 1 auto;min-width:46%;padding:12px 14px;font-size:15px}
+
+/* =========================================================
+   4. Builder: head bar, palette, validation, HUD
+   ========================================================= */
+.banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin:0 0 16px;padding:12px 18px;border-radius:14px;border:2px solid var(--corn);background:rgba(255,196,45,.1);font-weight:800;font-size:15px}
+.banner b{color:var(--corn2)}
+.banner a{color:var(--corn2);font-weight:900}
+.b-bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 18px;margin:0 0 18px}
+.b-bar-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.field{display:flex;flex-direction:column;gap:5px;font:900 10px var(--font-body);color:var(--dim);letter-spacing:.8px;text-transform:uppercase}
+.field input,.field select{min-height:42px;padding:8px 12px;border-radius:12px;border:2px solid var(--line2);background:#100d2a;color:var(--text);font:800 15px var(--font-body);text-transform:none;letter-spacing:0;outline:none}
+.field input:focus,.field select:focus{border-color:var(--corn)}
+.field input[type=number]{width:84px}
+.field-name input{width:280px}
+.menu-wrap{position:relative}
+.menu{position:absolute;top:calc(100% + 6px);left:0;z-index:30;min-width:240px;background:#14112e;border:2px solid var(--line2);border-radius:12px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.55)}
+.menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);font:800 14px var(--font-body);padding:9px 12px;border-radius:8px;cursor:pointer}
+.menu button:hover{background:rgba(255,255,255,.08);color:var(--corn2)}
+.counters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.valid{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.valid li{padding:8px 12px;border-radius:10px;border:1.5px solid rgba(255,79,109,.5);background:rgba(255,79,109,.1);font-size:13px;font-weight:700;color:#ffd9e0}
+.valid li.ok{border-color:rgba(67,232,164,.45);background:rgba(67,232,164,.08);color:#d6ffee}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tools .hint{font-size:12.5px;color:var(--dim);font-weight:700;margin-left:auto}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tab{padding:8px 11px;border-radius:10px;border:2px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);font:900 12.5px var(--font-body);cursor:pointer;transition:border-color .15s,color .15s}
+.tab:hover{border-color:var(--line2);color:var(--text)}
+.tab.sel{border-color:var(--corn);color:var(--corn2);background:rgba(255,196,45,.1)}
+.pal-panel{display:flex;flex-direction:column;gap:10px}
+.pal-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.pal{display:flex;align-items:center;gap:10px;min-width:0;min-height:54px;padding:8px 10px;border-radius:12px;border:2px solid var(--line);background:#1d1848;color:var(--text);cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.pal:hover{border-color:var(--line2);background:#241d58}
+.pal.sel{border-color:var(--corn);background:#2d2570;box-shadow:0 0 0 3px rgba(255,196,45,.22)}
+.pal-icon{width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;border-radius:9px;background:rgba(0,0,0,.35);overflow:hidden}
+.pal-icon .spr-icon{width:32px;height:32px}
+.pal-icon .glyph{font-size:22px}
+.pal-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pal-name{font-weight:900;font-size:13.5px;line-height:1.15;white-space:normal;overflow-wrap:anywhere}
+.pal-sub{font-size:12px;color:var(--muted);font-weight:700;line-height:1.2}
+.pal-note{font-size:13px;color:var(--muted);font-weight:600;line-height:1.45;margin:0}
+.sub-title{font:9px var(--font-pixel);color:var(--violet);letter-spacing:.5px;margin:4px 0 0}
+.dirs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.dirs button,.dirpad button{min-height:44px;border-radius:10px;border:2px solid var(--line);background:#1d1848;color:var(--text);font:900 18px var(--font-body);cursor:pointer;transition:border-color .15s,background .15s}
+.dirs button:hover,.dirpad button:hover:not(:disabled){border-color:var(--corn);background:#2d2570}
+.dirs button.sel{border-color:var(--corn);color:var(--corn2);background:#2d2570}
+.form-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.check{display:inline-flex;align-items:center;gap:8px;padding:7px 12px 7px 9px;border-radius:10px;border:2px solid var(--line);background:#1d1848;font-weight:800;font-size:13.5px;cursor:pointer;transition:border-color .15s,background .15s}
+.check:hover{border-color:var(--line2)}
+.check.on{border-color:var(--corn);background:#2d2570}
+.check.off{opacity:.45;cursor:not-allowed}
+.check input{accent-color:var(--corn);margin:0;width:16px;height:16px}
+.check .spr-icon{width:22px;height:22px}
+.hero-summary{font-size:13px;color:var(--muted);font-weight:700}
+
+.hud{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 16px}
+.hud .chip{flex:0 0 auto}
+.hud-energy{display:flex;align-items:center;gap:10px;flex:1 1 220px;min-width:200px}
+.pbar{flex:1;height:16px;border-radius:999px;background:#100d2a;border:2px solid var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#1cb5e0,#3fd9ff);box-shadow:0 0 14px rgba(63,217,255,.6);transition:width .35s cubic-bezier(.2,.8,.2,1)}
+.pbar.low i{background:linear-gradient(90deg,#c0233d,#ff4f6d);box-shadow:0 0 14px rgba(255,79,109,.6)}
+.hud-lbl{font:10px var(--font-pixel);color:var(--corn2);white-space:nowrap}
+.hud-val{font:900 16px var(--font-body);white-space:nowrap;min-width:64px}
+.dirpick{position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;background:rgba(5,4,18,.55);border-radius:18px}
+.dirpick-card{background:#14112e;border:2px solid var(--violet);border-radius:16px;padding:16px 18px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.6);animation:popIn .2s ease}
+.dirpick-title{font-weight:900;font-size:15px;margin-bottom:10px}
+.dirpad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);gap:6px;justify-content:center;margin:0 auto 10px}
+.dirpad button:disabled{opacity:.3;cursor:not-allowed}
+.dirpick-hint{font-size:12px;color:var(--dim);font-weight:700}
+
+/* Toast, inspect card, footer, modal */
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;background:#1a1440;color:#fff;border:2px solid var(--corn);border-radius:12px;padding:12px 18px;
+  font-weight:800;font-size:14px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.55);max-width:min(92vw,520px);text-align:center;animation:popIn .25s ease}
+.inspect{position:absolute;z-index:14;width:250px;padding:10px 12px;border-radius:12px;background:rgba(14,11,38,.97);border:2px solid var(--line2);box-shadow:0 14px 40px rgba(0,0,0,.55);
+  pointer-events:none;font-size:13px;line-height:1.4;color:var(--text)}
+.inspect .in-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.inspect .in-head img{width:28px;height:28px;image-rendering:pixelated;flex:0 0 auto}
+.inspect .in-name{font-weight:900;font-size:14px;color:#fff}
+.inspect .in-hp{font-size:12px;color:var(--muted);font-weight:800;margin-left:auto;white-space:nowrap}
+.inspect .in-bar{height:7px;border-radius:99px;background:#2a1f2f;overflow:hidden;margin:0 0 8px;border:1px solid rgba(255,255,255,.12)}
+.inspect .in-bar i{display:block;height:100%;background:linear-gradient(90deg,#ff4f6d,#ff9b3d);border-radius:99px}
+.inspect .in-status{font-weight:800;color:var(--st,#fff);margin-bottom:4px}
+.inspect .in-short{color:var(--muted);font-weight:600}
+.inspect .in-nums{font-weight:800;color:#e6dcff;margin-bottom:4px}
+.inspect .in-tip{margin-top:6px;font-size:12px;font-weight:800;color:var(--corn2)}
+footer{max-width:1240px;margin:0 auto;padding:10px var(--gutter) 40px;color:var(--dim);font-size:13.5px;font-weight:600;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(5,4,18,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:20px}
+.modal-card{width:100%;max-width:720px;max-height:86vh;overflow:auto;background:linear-gradient(180deg,var(--card2),var(--card));border:3px solid var(--line2);border-radius:22px;padding:22px;animation:popIn .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+@keyframes popIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.modal-head h3{margin:0;font:13px var(--font-pixel);color:var(--corn)}
+.legend-section{font:10px var(--font-pixel);color:var(--violet);margin:18px 0 10px;letter-spacing:.5px}
+.legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.legend-row{display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.legend-row b{display:block;font-size:14px}
+.legend-row span{display:block;color:var(--muted);font-size:12.5px;font-weight:600;line-height:1.35}
+.board.sample{--tile:44px;grid-template-columns:var(--tile);border-radius:6px;overflow:visible}
+.board.sample .cue-reveal{opacity:.6}
+.error-box{padding:18px;border-radius:14px;border:2px solid var(--coral);background:rgba(255,79,109,.1);font-weight:700}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .particles{display:none}
+}
+</style>
+</head>
+<body data-mode="edit">
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="particles" id="particles" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand-wrap">
+      <a class="brand" href="./index.html" title="Home"><span class="corn">🌽</span><span class="txt">Build or Survive</span></a>
+      <span class="mode-tag">MAZE BUILDER</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-sound" type="button" title="Sound on / off" aria-pressed="true">🔊 <span id="lbl-sound">Sound</span></button>
+      <button class="icon-btn" id="btn-legend" type="button" title="Enemy legend &amp; board key">❔ <span>Legend</span></button>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+  <div class="banner" id="banner" hidden></div>
+
+  <!-- ================= EDITOR ================= -->
+  <section class="screen active" id="screen-edit" aria-labelledby="edit-title">
+    <div class="card">
+      <div class="q-head">
+        <div class="q-head-main">
+          <div class="q-num">MAZE BUILDER</div>
+          <h2 class="q-title" id="edit-title">Build a floor. Then survive it.</h2>
+          <p class="q-hook">Paint walls, drop enemies, traps and loot from the palette, set up your hero, then play the floor with the real rules. Share the link and see who survives.</p>
+        </div>
+        <div class="counters" id="counters"></div>
+      </div>
+      <div class="b-bar">
+        <label class="field field-name"><span>Floor name</span><input id="floor-name" type="text" maxlength="40" placeholder="My floor" autocomplete="off"></label>
+        <div class="b-bar-actions">
+          <div class="menu-wrap"><button class="btn btn-ghost btn-sm" id="btn-sample" type="button" aria-haspopup="true">📂 Load sample ▾</button><div class="menu" id="sample-menu" hidden></div></div>
+          <button class="btn btn-ghost btn-sm" id="btn-clear" type="button">🧹 Clear floor</button>
+          <button class="btn btn-ghost btn-sm" id="btn-copy-edit" type="button">🔗 Copy challenge link</button>
+          <button class="btn btn-primary btn-sm" id="btn-play" type="button">▶ Play this floor</button>
+        </div>
+      </div>
+      <div class="q-grid">
+        <div class="q-board-col" id="edit-col">
+          <div class="board-wrap" id="edit-board"></div>
+          <ul class="valid" id="valid"></ul>
+          <div class="board-caption"><span>click or drag to paint</span><span>right click removes</span><span>hover a piece to inspect it</span></div>
+        </div>
+        <div class="q-side" id="pal-wrap">
+          <div class="side-title"><span>PALETTE</span><small id="brush-lbl">Brush: Wall</small></div>
+          <div class="tools" id="tools">
+            <button class="icon-btn sel" id="tool-paint" type="button" title="Paint with the selected palette entry">🖌 Paint</button>
+            <button class="icon-btn" id="tool-erase" type="button" title="Remove pieces (right click does the same)">🧽 Eraser</button>
+            <span class="hint">Esc = back to Paint</span>
+          </div>
+          <div class="tabs" id="tabs" role="tablist"></div>
+          <div class="pal-panel" id="pal-panel"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PLAY ================= -->
+  <section class="screen" id="screen-play" aria-live="polite">
+    <div class="card">
+      <div class="hud" id="hud"></div>
+      <div class="q-grid">
+        <div class="q-board-col" id="play-col">
+          <div class="board-wrap" id="play-board"></div>
+          <div class="board-caption"><span><i class="swatch pre">!</i> strikes next turn</span><span><i class="swatch dir"></i> strike direction</span><span><i class="swatch tg"></i> danger tiles</span><span>❄ frozen</span></div>
+        </div>
+        <div class="q-side">
+          <div class="side-title"><span id="side-title">YOUR MOVE</span><small id="side-sub">Your floor</small><span class="side-actions" id="side-actions"></span></div>
+          <div class="opt-list" id="opt-list"></div>
+          <div class="keys-hint" id="keys-hint"><span>list or board - same moves</span><span><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> or <kbd>WASD</kbd> move / attack</span><span><kbd>Space</kbd> wait</span><span><kbd>I</kbd> item</span><span><kbd>Esc</kbd> cancel</span></div>
+          <div class="feedback" id="endcard" hidden></div>
+          <div class="log" id="log"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<footer>
+  <span id="footer-text">Maze Builder is a fan-made mode: the real Maze of Gains rules, your own floor.</span>
+  <span class="credit-slot" id="credit-foot"></span>
+  <button class="icon-btn" id="btn-legend-2" type="button">❔ Enemy legend</button>
+</footer>
+
+<!-- Legend modal -->
+<div class="modal" id="legend-modal" hidden role="dialog" aria-modal="true" aria-labelledby="legend-title">
+  <div class="modal-card">
+    <div class="modal-head"><h3 id="legend-title">LEGEND</h3><button class="icon-btn" id="btn-legend-close" type="button" aria-label="Close">✕</button></div>
+    <div class="legend-section">BOARD KEY</div>
+    <div class="legend-grid" id="legend-key"></div>
+    <div class="legend-section">ENEMIES</div>
+    <div class="legend-grid" id="legend-list"></div>
+  </div>
+</div>
+
+<noscript><div class="error-box" style="margin:20px">Maze Builder needs JavaScript.</div></noscript>
+<script src="assets/sprites.js"></script>
+<script src="builder/sim.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* =========================================================
+   0. Constants, sound, sprites
+   ========================================================= */
+var SIM = (window.MOG_SIM && typeof window.MOG_SIM === 'object') ? window.MOG_SIM : null;
+var RULES = (SIM && SIM.RULES) || {};
+var R_EN = RULES.ENEMIES || {}, R_OBJ = RULES.OBJECTS || {}, R_PK = RULES.PICKUPS || {}, R_TR = RULES.TRAPS || {};
+var R_IT = RULES.ITEMS || {}, R_WE = RULES.WEATHER || {}, R_TA = RULES.TALENTS || {}, R_HERO = RULES.HERO || {};
+var REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+/* 8-bit sounds, synthesized: nothing to load. Off switch in the top bar, remembered per browser (shared with the quiz). */
+var SFX = (function () {
+  var ctx = null, on = true;
+  try { on = localStorage.getItem('wys.sound') !== 'off'; } catch (e) { /* storage unavailable */ }
+  function ac() {
+    if (ctx) return ctx;
+    var C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    try { ctx = new C(); } catch (e) { return null; }
+    return ctx;
+  }
+  function tone(t0, freq, dur, type, vol, slideTo) {
+    var c = ac(); if (!c) return;
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'square'; o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(30, slideTo), t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol || 0.06, t0 + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.03);
+  }
+  function noise(t0, dur, vol) {
+    var c = ac(); if (!c) return;
+    var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0), i;
+    for (i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    var s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+    s.buffer = buf; f.type = 'lowpass'; f.frequency.value = 1600; g.gain.value = vol || 0.1;
+    s.connect(f); f.connect(g); g.connect(c.destination); s.start(t0);
+  }
+  var SOUNDS = {
+    blip:   function (t) { tone(t, 660, 0.06, 'square', 0.04); },
+    click:  function (t) { tone(t, 440, 0.045, 'square', 0.035); },
+    pick:   function (t) { tone(t, 880, 0.06, 'square', 0.04); tone(t + 0.07, 1320, 0.09, 'square', 0.04); },
+    smash:  function (t) { noise(t, 0.12, 0.1); tone(t, 180, 0.1, 'sawtooth', 0.03, 90); },
+    kill:   function (t) { noise(t, 0.1, 0.08); tone(t, 392, 0.08, 'square', 0.045); tone(t + 0.08, 523, 0.12, 'square', 0.045); },
+    best:   function (t) { [523, 659, 784, 1047].forEach(function (f, i) { tone(t + i * 0.07, f, 0.13, 'square', 0.05); }); },
+    ok:     function (t) { tone(t, 523, 0.1, 'square', 0.045); tone(t + 0.1, 659, 0.15, 'square', 0.045); },
+    bad:    function (t) { noise(t, 0.16, 0.12); tone(t, 220, 0.18, 'sawtooth', 0.045, 110); },
+    lethal: function (t) { noise(t, 0.22, 0.12); [330, 262, 196, 131].forEach(function (f, i) { tone(t + 0.1 + i * 0.14, f, 0.17, 'sawtooth', 0.05); }); }
+  };
+  function play(name) {
+    if (!on || !SOUNDS[name]) return;
+    var c = ac(); if (!c) return;
+    if (c.state === 'suspended') { try { c.resume(); } catch (e) { /* needs a gesture */ } }
+    try { SOUNDS[name](c.currentTime); } catch (e) { /* audio unavailable */ }
+  }
+  function set(v) { on = !!v; try { localStorage.setItem('wys.sound', on ? 'on' : 'off'); } catch (e) { /* storage unavailable */ } }
+  return { play: play, set: set, isOn: function () { return on; } };
+})();
+var MAX_TILE = 48, MIN_TILE = 32, MAX_BOARD_H = 560; // tile = clamp(floor(columnInner / w), 32, 48), also <= floor(560 / h)
+var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+var DIR_ORDER = ['up', 'left', 'right', 'down'];
+var ARROWS = { up: '▲', down: '▼', left: '◀', right: '▶', pass: '◎', item: '✦' };
+var DIR_WORD = { up: 'up', down: 'down', left: 'left', right: 'right' };
+var KIND_LABEL = { move: 'Move', attack: 'Attack', pass: 'Wait', item: 'Item', blocked: 'Blocked', 'break': 'Break', pickup: 'Pick up' };
+var KIND_WORD = { move: 'Step', attack: 'Attack', 'break': 'Smash', pickup: 'Grab', pass: 'Wait', blocked: 'Blocked' };
+var WEATHER_ICON = { blizzard: '❄️', heatwave: '🔥', storm: '⛈️', gale: '🌪️', miasma: '☠️' };
+var OBJECTS = {
+  pot: { glyph: '🏺', name: 'Pot' }, crate: { glyph: '📦', name: 'Crate' }, corn_stalk: { glyph: '🌽', name: 'Corn stalk', cls: 'o-stalk' },
+  stairs: { svg: 'stairs', name: 'Stairs down' }, chest: { svg: 'chest', name: 'Chest' }, fountain: { svg: 'fountain', name: 'Fountain' }
+};
+var PICKUPS = {
+  golden_corn: { glyph: '🌽', name: 'Golden corn' }, small_energy_orb: { orb: 'orb-s', name: 'Small energy orb' },
+  large_energy_orb: { orb: 'orb-l', name: 'Large energy orb' }, treasure: { glyph: '💎', name: 'Treasure' }, item: { glyph: '🎒', name: 'Item' }
+};
+var TRAPS_FB = { spike: { name: 'Spikes', hint: 'Spikes: they rise on a timer and hit whoever stands here.' }, arrow: { name: 'Arrow trap', hint: 'Arrow trap: fires along its line on a timer.' } };
+var OBJECT_HINTS_FB = { pot: 'Smash it for 0 Energy. Can hold loot.', crate: 'Smash it for 0 Energy. Can hold loot.', corn_stalk: 'Break it for Golden Corn.', stairs: 'Step on it to finish the floor.', chest: 'Open it for loot.', fountain: 'Step in to restore Energy.' };
+var PICKUP_HINTS_FB = { golden_corn: 'Step on it to collect. Drops disappear after about 20 turns.', small_energy_orb: 'Step on it to restore Energy.', large_energy_orb: 'Step on it to restore Energy.', treasure: 'Step on it to collect coins.', item: 'Step on it to pick up the item.' };
+var PAL_OBJECTS = ['pot', 'crate', 'corn_stalk', 'chest', 'fountain'];
+var PAL_PICKUPS = ['golden_corn', 'small_energy_orb', 'large_energy_orb', 'treasure', 'item'];
+var SVG = {
+  hero: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 5l3 5M25 5l-3 5M4 10l6 1M28 10l-6 1" stroke="#3a2600" stroke-width="2.2" stroke-linecap="round" fill="none"/><rect x="9.5" y="2" width="5" height="14" rx="2.5" fill="#3a2600"/><rect x="17.5" y="2" width="5" height="14" rx="2.5" fill="#3a2600"/><circle cx="16" cy="20" r="9.5" fill="#3a2600"/><circle cx="12.4" cy="19" r="1.9" fill="#FFC42D"/><circle cx="19.6" cy="19" r="1.9" fill="#FFC42D"/><path d="M13.5 24q2.5 2 5 0" stroke="#FFC42D" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>',
+  stairs: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="6" fill="#123c2f" stroke="#43e8a4" stroke-width="2.2"/><path d="M16 8v13M10 15l6 6 6-6" stroke="#43e8a4" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  spike: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 29L8.5 11 14 29zM11 29l5-23 5 23zM18 29l5.5-18L29 29z" fill="#aab3c5" stroke="#5f6a80" stroke-width="1.2" stroke-linejoin="round"/></svg>',
+  arrow: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="4" width="24" height="24" rx="5" fill="#2b2547" stroke="#7a6aa8" stroke-width="1.6"/><path d="M9 16h12M16 10l6 6-6 6" stroke="#ffd9e0" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  chest: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="12" width="26" height="16" rx="3" fill="#8a5a2b" stroke="#3a2600" stroke-width="1.5"/><path d="M3 15a13 6 0 0 1 26 0v2H3z" fill="#a86f38" stroke="#3a2600" stroke-width="1.5"/><path d="M3 20h26" stroke="#3a2600" stroke-width="1.5"/><rect x="13" y="16" width="6" height="7" rx="1.5" fill="#FFC42D" stroke="#3a2600" stroke-width="1.2"/></svg>',
+  fountain: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 19h22l-3.5 9.5h-15z" fill="#2a6fb3" stroke="#0b2e57" stroke-width="1.4" stroke-linejoin="round"/><ellipse cx="16" cy="19" rx="12" ry="3.6" fill="#3fd9ff" stroke="#0b2e57" stroke-width="1.4"/><path d="M16 3c3.2 4.6 5.3 7.4 5.3 10.2a5.3 5.3 0 0 1-10.6 0C10.7 10.4 12.8 7.6 16 3z" fill="#8fecff" stroke="#0b2e57" stroke-width="1.3"/><circle cx="14" cy="12" r="1.4" fill="#fff"/></svg>'
+};
+
+/* Game sprites: window.MOG_SPRITES (assets/sprites.js) -> { key: { src, w, h, scale? } }; glyphs are the fallback */
+var SPR = (window.MOG_SPRITES && typeof window.MOG_SPRITES === 'object') ? window.MOG_SPRITES : null;
+if (!SPR && window.console) console.info('[Maze Builder] assets/sprites.js not loaded - drawing the board with built-in glyph fallbacks.');
+var spriteMissing = {};
+function hasSprite(key) { var s = SPR && SPR[key]; return !!(s && s.src); }
+function spriteInfo(key) {
+  if (hasSprite(key)) return SPR[key];
+  if (SPR && key && !spriteMissing[key] && !/^(cue_|deco_|tile_|arrow$|bomb$|piercing_shot$)/.test(key)) { spriteMissing[key] = true; if (window.console) console.info('[Maze Builder] no sprite for "' + key + '" - using the glyph fallback.'); }
+  return null;
+}
+function spriteImg(key, cls) { // the game draws frames at tile/32 scale, centred on the tile, overhanging it (tall frames anchor at the bottom)
+  var s = spriteInfo(key); if (!s) return null;
+  var k = s.scale || 1, w = (s.w || 32) / 32 * k, h = (s.h || 32) / 32 * k;
+  var img = el('img', { 'class': 'spr ' + (cls || '') + (h > w ? ' anchor-bottom' : ''), src: s.src, alt: '', draggable: 'false' });
+  img.style.width = 'calc(var(--tile) * ' + w + ')'; img.style.height = 'calc(var(--tile) * ' + h + ')';
+  return img;
+}
+function spriteIcon(key, px) { var s = spriteInfo(key); return s ? el('img', { 'class': 'spr-icon', src: s.src, alt: '', width: px, height: px, draggable: 'false' }) : null; }
+var CREDIT = { label: 'created by Florence', handle: '@flxrnc', url: 'https://x.com/flxrnc' };
+function creditLink(cls) {
+  return el('a', { 'class': 'credit ' + (cls || ''), href: CREDIT.url, target: '_blank', rel: 'noopener noreferrer', title: 'Made by ' + CREDIT.handle },
+    el('span', { 'class': 'x-logo', 'aria-hidden': 'true', text: '𝕏' }), ' ' + CREDIT.label + ' · ' + CREDIT.handle);
+}
+
+/* =========================================================
+   1. Tiny DOM helpers + names from MOG_SIM.RULES
+   ========================================================= */
+function $(sel, root) { return (root || document).querySelector(sel); }
+function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+function el(tag, attrs) {
+  var n = document.createElement(tag), i, k, v, kids = Array.prototype.slice.call(arguments, 2);
+  if (attrs) for (k in attrs) {
+    v = attrs[k];
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'class') n.className = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k === 'text') n.textContent = v;
+    else if (k === 'style') n.style.cssText = v;
+    else if (k.indexOf('on') === 0) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? '' : v);
+  }
+  for (i = 0; i < kids.length; i++) append(n, kids[i]);
+  return n;
+}
+function append(n, c) {
+  if (c === null || c === undefined || c === false) return;
+  if (Array.isArray(c)) { c.forEach(function (x) { append(n, x); }); return; }
+  n.appendChild(c.nodeType ? c : document.createTextNode(String(c)));
+}
+function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); return n; }
+function pretty(id) { return String(id || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
+function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
+function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+function ruleName(tbl, key, fb) { var r = tbl && tbl[key]; return (r && (r.name || r.label)) || fb || pretty(key); }
+function ruleShort(tbl, key, fb) { var r = tbl && tbl[key]; return (r && (r.short || r.desc || r.description || r.text)) || fb || ''; }
+function ruleOn(r) { return !!r && r.implemented !== false; }
+function enemyName(t) { return ruleName(R_EN, t); }
+function enemyShort(t) { return ruleShort(R_EN, t); }
+function objName(t) { return ruleName(R_OBJ, t, (OBJECTS[t] || {}).name); }
+function objHint(t) { return ruleShort(R_OBJ, t, OBJECT_HINTS_FB[t]); }
+function pkName(t) { return ruleName(R_PK, t, (PICKUPS[t] || {}).name); }
+function pkHint(t) { return ruleShort(R_PK, t, PICKUP_HINTS_FB[t]); }
+function trapName(t) { return ruleName(R_TR, t, (TRAPS_FB[t] || {}).name); }
+function trapHint(t) { return ruleShort(R_TR, t, (TRAPS_FB[t] || {}).hint); }
+function itemName(k) { return ruleName(R_IT, k); }
+function itemHint(k) { return ruleShort(R_IT, k); }
+function talentName(k) { return ruleName(R_TA, k); }
+function talentHint(k) { return ruleShort(R_TA, k); }
+function weatherName(k) { return k ? ruleName(R_WE, k) : 'Clear'; }
+function weatherHint(k) { return k ? ruleShort(R_WE, k) : 'No weather effect on this floor.'; }
+function weatherLabel(k) { return (WEATHER_ICON[k] ? WEATHER_ICON[k] + ' ' : '') + weatherName(k); }
+function keysOf(tbl, filter) { return Object.keys(tbl || {}).filter(function (k) { return filter ? filter(tbl[k], k) : true; }); }
+function dmgText(d) {
+  if (Array.isArray(d)) { if (!(d[1] > 0)) return ''; return d[0] === d[1] ? String(d[0]) : d[0] + '-' + d[1]; }
+  if (d && typeof d === 'object') { var lo = d.lo != null ? d.lo : d.min, hi = d.hi != null ? d.hi : d.max; if (!(hi > 0)) return ''; return lo === hi ? String(lo) : lo + '-' + hi; }
+  if (typeof d === 'number') return d > 0 ? String(d) : '';
+  return '';
+}
+function enemyIsInv(t) { var r = R_EN[t] || {}; return !!r.invincible || (r.hp === 0 && !(r.maxHp > 0)); }
+function enemyHp(t) { var r = R_EN[t] || {}; return enemyIsInv(t) ? 0 : (r.hp | 0) || (r.maxHp | 0) || 0; }
+function enemyNumbers(t) {
+  var r = R_EN[t] || {}, parts = [], d = dmgText(r.dmg);
+  parts.push(enemyIsInv(t) ? 'Invulnerable' : enemyHp(t) + ' HP');
+  if (d) parts.push(d + ' dmg');
+  if (r.charge > 0) parts.push('wind-up ' + r.charge);
+  if (r.rest > 0) parts.push('rest ' + r.rest);
+  if (r.range > 1) parts.push('range ' + r.range);
+  if (r.aggro > 0) parts.push('sees ' + r.aggro);
+  return parts.join(' · ');
+}
+function itemNeedsDir(key) {
+  var r = R_IT[key];
+  if (r) {
+    if (r.directional != null) return !!r.directional;
+    if (r.dir != null && typeof r.dir === 'boolean') return r.dir;
+    if (r.line != null) return !!r.line;
+    if (typeof r.target === 'string') return /^(dir|direction|line)$/.test(r.target);
+  }
+  return /^(single_shot|pogo_stick|chain_shot|piercing_shot|chain_hook)$/.test(key);
+}
+
+/* =========================================================
+   2. Board rendering (copied from the quiz; CSS grid, --tile in px)
+   ========================================================= */
+var fitted = [];
+function tileVal(b, x, y) { var row = b.tiles && b.tiles[y]; if (!row) return 2; var v = row[x]; return (v === 0 || v === 1 || v === 2) ? v : 2; }
+function inBounds(w, h, e) { return !!e && Number.isInteger(e.x) && Number.isInteger(e.y) && e.x >= 0 && e.y >= 0 && e.x < w && e.y < h; }
+function hash01(x, y) { var h = ((x + 1) * 73856093) ^ ((y + 1) * 19349663); h = Math.imul(h ^ (h >>> 13), 1274126177); h = (h ^ (h >>> 16)) >>> 0; return (h % 10000) / 10000; }
+function pickVariant(base, r, n, wBase, wVar) {
+  var total = wBase + n * wVar, t = r * total;
+  if (t < wBase) return base;
+  return base + '_v' + Math.min(n, Math.floor((t - wBase) / wVar) + 1);
+}
+function tileSpec(b, w, h, x, y) {
+  function F(xx, yy) { return xx >= 0 && yy >= 0 && xx < w && yy < h && tileVal(b, xx, yy) === 0; }
+  var v = tileVal(b, x, y), r = hash01(x, y);
+  if (v === 2) return { cls: 'fog r-fog', key: 'tile_fog' };
+  if (v === 0) {
+    var odd = (x + y) % 2 === 1, variant = r < 0.10;
+    return { cls: 'floor r-floor' + (odd ? ' odd' : '') + (odd && variant ? ' chk' : ''), key: variant ? 'tile_floor_v' + (1 + Math.floor(r / 0.10 * 7)) : (odd ? 'tile_floor_b' : 'tile_floor_a') };
+  }
+  var S = F(x, y + 1), N = F(x, y - 1), W = F(x - 1, y), E = F(x + 1, y);
+  if (S) return { cls: 'wall r-face', face: true, key: W ? 'tile_wall_face_end_l' : E ? 'tile_wall_face_end_r' : pickVariant('tile_wall_face', r, 3, 6, 1) };
+  if (N) return { cls: 'wall r-bottom', key: W ? 'tile_wall_bottom_end_l' : E ? 'tile_wall_bottom_end_r' : 'tile_wall_bottom' };
+  if (E) return { cls: 'wall r-side', key: pickVariant('tile_wall_left', r, 3, 5, 1) };
+  if (W) return { cls: 'wall r-side', key: pickVariant('tile_wall_right', r, 3, 5, 1) };
+  if (F(x + 1, y + 1)) return { cls: 'wall r-corner', key: 'tile_wall_tl' };
+  if (F(x - 1, y + 1)) return { cls: 'wall r-corner', key: 'tile_wall_tr' };
+  if (F(x + 1, y - 1)) return { cls: 'wall r-corner', key: 'tile_wall_bl' };
+  if (F(x - 1, y - 1)) return { cls: 'wall r-corner', key: 'tile_wall_br' };
+  return { cls: 'wall r-top', key: 'tile_wall_top' };
+}
+function resolveTileKey(key) {
+  var chain = [key, key.replace(/_(v\d+|end_[lr])$/, '')];
+  if (/^tile_floor/.test(key)) chain.push('tile_floor_a', 'tile_floor', 'floor');
+  else if (/^tile_wall_face/.test(key)) chain.push('tile_wall_face', 'wall');
+  else if (/^tile_wall/.test(key)) chain.push('tile_wall_top', 'tile_wall');
+  for (var i = 0; i < chain.length; i++) if (hasSprite(chain[i])) return chain[i];
+  return null;
+}
+function bgVar(board, key) {
+  if (!board._keys) board._keys = {};
+  if (!board._keys[key]) { board.style.setProperty('--t-' + key, 'url("' + SPR[key].src + '")'); board._keys[key] = true; }
+  return 'var(--t-' + key + ')';
+}
+function shadowCss(b, w, h, x, y, v) {
+  function isWall(xx, yy) { return xx >= 0 && yy >= 0 && xx < w && yy < h && tileVal(b, xx, yy) === 1; }
+  function isFloor(xx, yy) { return xx >= 0 && yy >= 0 && xx < w && yy < h && tileVal(b, xx, yy) === 0; }
+  var parts = [];
+  if (v === 0) {
+    var up = isWall(x, y - 1), left = isWall(x - 1, y);
+    if (up) parts.push('linear-gradient(rgba(0,0,0,.26),rgba(0,0,0,0) 22%)', 'linear-gradient(rgba(0,0,0,.30),rgba(0,0,0,0) 55%)');
+    if (left) parts.push('linear-gradient(90deg,rgba(0,0,0,.16),rgba(0,0,0,0) 40%)');
+    if (up && left) parts.push('radial-gradient(circle at 0 0,rgba(0,0,0,.22),rgba(0,0,0,0) 45%)');
+  } else if (v === 1) {
+    if (isFloor(x, y - 1)) parts.push('linear-gradient(rgba(255,236,190,.18),rgba(255,236,190,0) 25%)');
+    if (isFloor(x - 1, y)) parts.push('linear-gradient(90deg,rgba(255,236,190,.18),rgba(255,236,190,0) 25%)');
+  }
+  return parts.join(',');
+}
+function torchEl() {
+  var a = spriteImg('deco_torch'), f = spriteImg('deco_torch_f1');
+  if (!a) return el('div', { 'class': 'ent torch fb' }, el('i', { 'class': 'glow' }), el('span', { 'class': 'flame' }));
+  if (f) f.classList.add('f1');
+  return el('div', { 'class': 'ent torch' }, el('i', { 'class': 'glow' }), a, f);
+}
+function renderBoard(p, container, opts) {
+  opts = opts || {};
+  var b = p.board || {}, w = Math.max(1, b.w | 0), h = Math.max(1, b.h | 0);
+  var board = el('div', { 'class': 'board' + (opts.cls ? ' ' + opts.cls : ''), role: opts.role || 'img', 'aria-label': (p.title || 'Board') + ' - ' + w + ' by ' + h + ' dungeon board' });
+  board.style.gridTemplateColumns = 'repeat(' + w + ', var(--tile))';
+  var cell = {};
+  function put(list, field) {
+    (Array.isArray(list) ? list : []).forEach(function (e) {
+      if (!inBounds(w, h, e)) return;
+      var k = e.x + ',' + e.y, c = cell[k] || (cell[k] = {});
+      (c[field] || (c[field] = [])).push(e);
+    });
+  }
+  put(p.traps, 'traps'); put(p.objects, 'objects'); put(p.bombs, 'bombs'); put(p.pickups, 'pickups'); put(p.enemies, 'enemies');
+  var reveal = {}, explode = {};
+  (Array.isArray(p.cues) ? p.cues : []).forEach(function (q) { if (!inBounds(w, h, q)) return; if (q.kind === 'explode') explode[q.x + ',' + q.y] = true; else reveal[q.x + ',' + q.y] = true; });
+  (Array.isArray(p.enemies) ? p.enemies : []).forEach(function (e) { // boomcap on its last charge turn: the 8 neighbours
+    if (!/boomcap/.test(e.type || '') || e.phase !== 'charge' || !(e.turns <= 1)) return;
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if (dx || dy) explode[(e.x + dx) + ',' + (e.y + dy)] = true;
+  });
+  var pl = p.player, x, y, v, t, c, k, hasPlayer, spec, key, bg, sh, faces = 0;
+  for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+    v = tileVal(b, x, y); k = x + ',' + y;
+    spec = tileSpec(b, w, h, x, y);
+    t = el('div', { 'class': 'tile ' + spec.cls, 'data-x': x, 'data-y': y });
+    key = resolveTileKey(spec.key); bg = el('i', { 'class': 'tbg' + (key ? '' : ' nobg') });
+    if (key) bg.style.backgroundImage = bgVar(board, key);
+    t.appendChild(bg);
+    sh = shadowCss(b, w, h, x, y, v);
+    if (sh) t.appendChild(el('i', { 'class': 'tsh', style: 'background-image:' + sh }));
+    if (spec.face && (++faces % 5 === 2)) t.appendChild(torchEl());
+    if (reveal[k]) t.appendChild(cueSprite('cue_target', 'cue-reveal'));
+    if (explode[k]) t.appendChild(cueSprite('cue_explode', 'cue-explode'));
+    c = cell[k] || {};
+    hasPlayer = !!(pl && pl.x === x && pl.y === y);
+    (c.traps || []).forEach(function (q) { t.appendChild(trapEl(q)); });
+    (c.objects || []).forEach(function (q) { t.appendChild(objectEl(q)); });
+    (c.bombs || []).forEach(function (q) { t.appendChild(bombEl(q)); });
+    (c.pickups || []).forEach(function (q) { t.appendChild(pickupEl(q)); });
+    (c.enemies || []).forEach(function (q) {
+      if (q.revealed === false && opts.hideAmbush) { t.appendChild(objectEl({ type: /pot/.test(q.type || '') ? 'pot' : 'chest', x: q.x, y: q.y })); return; } // an unrevealed mimic looks like its disguise
+      t.appendChild(enemyEl(q)); enemyCueEls(q).forEach(function (n) { t.appendChild(n); });
+    });
+    if (hasPlayer) { t.classList.add('has-player'); t.appendChild(playerEl()); }
+    board.appendChild(t);
+  }
+  clear(container).appendChild(board);
+  var maxTile = opts.maxTile || MAX_TILE;
+  var entry = { board: board, container: container, w: w, h: h, maxTile: maxTile };
+  fitted = fitted.filter(function (f) { return document.body.contains(f.board); });
+  fitted.push(entry);
+  applyFit(entry);
+  return board;
+}
+function applyFit(f) {
+  var cs = getComputedStyle(f.container);
+  var avail = f.container.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+  if (!(avail > 0)) return;
+  var byW = Math.floor(avail / f.w), byH = Math.floor(MAX_BOARD_H / Math.max(1, f.h | 0)), t = Math.min(f.maxTile, byW, byH);
+  if (t < MIN_TILE) t = Math.min(byW, MIN_TILE); // the height cap gives way before the board would overflow its frame
+  t = Math.max(12, t);
+  f.board.style.setProperty('--tile', t + 'px');
+}
+function refit() { fitted.forEach(applyFit); }
+window.addEventListener('resize', refit);
+
+/* ---- Cues at the attacker's tile (tiles.md 2): "!" on the last charge turn, direction triangle facing the target, cross composite for soldiers ---- */
+function cueSprite(key, cls) {
+  var n = el('div', { 'class': 'ent cue ' + cls }), img = hasSprite(key) ? spriteImg(key) : null;
+  if (img) n.appendChild(img); else n.classList.add('fb');
+  return n;
+}
+function enemyCueEls(e) {
+  var out = [], t = e.target;
+  if ((e.phase || 'idle') !== 'charge') return out;
+  var kind = (R_EN[e.type] || {}).kind || '';
+  var isAoe = kind === 'aoe' || /skelesoldier/.test(e.type || ''), isBoom = kind === 'explode' || /boomcap/.test(e.type || '');
+  var dx = t ? Math.sign((t.x | 0) - e.x) : 0, dy = t ? Math.sign((t.y | 0) - e.y) : 0;
+  if (isAoe && t) out.push(cueSprite('cue_aoe', 'cue-aoe'));
+  else if (t && (dx || dy) && !isBoom) {
+    var dir = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+    out.push(cueSprite(dir === 'up' ? 'cue_dir' : 'cue_dir_' + dir, 'cue-dir d-' + dir));
+  } else if (!t && e.dir && DIRS[e.dir] && !isBoom) {
+    out.push(cueSprite(e.dir === 'up' ? 'cue_dir' : 'cue_dir_' + e.dir, 'cue-dir d-' + e.dir));
+  }
+  if (e.turns === 1) out.push(cueSprite('cue_preattack', 'cue-pre'));
+  return out;
+}
+
+/* ---- Entities: sprite when the key exists, glyph otherwise; only the HUD the game shows ---- */
+function trapEl(t) {
+  var name = trapName(t.type), dirTxt = t.type === 'arrow' && t.dir ? ' (fires ' + DIR_WORD[t.dir] + ')' : '';
+  var n = el('div', { 'class': 'ent trap' + (t.up ? ' up' : '') + (t.type === 'arrow' && t.dir ? ' arrow-' + t.dir : ''), 'aria-label': name + dirTxt }), img = spriteImg(t.type);
+  var hint = trapHint(t.type);
+  if (t.type === 'spike' && t.up != null) hint = (t.up ? 'Spikes are UP right now. ' : 'Spikes are down right now. ') + hint;
+  if (t.type === 'arrow' && t.dir) hint = 'Fires ' + DIR_WORD[t.dir] + '. ' + hint;
+  n.__ent = { kind: 'trap', name: name, type: t.type, hint: hint };
+  if (img) n.appendChild(img); else if (SVG[t.type]) n.innerHTML = SVG[t.type]; else n.appendChild(el('span', { 'class': 'glyph', text: '⚠️' }));
+  if (t.type === 'arrow' && t.dir) n.appendChild(el('span', { 'class': 'dir-mark', text: ARROWS[t.dir] }));
+  return n;
+}
+function bombEl(b) {
+  var n = el('div', { 'class': 'ent obj bomb', 'aria-label': 'Bomb, ' + plural(b.turns | 0, 'turn') + ' left' }), img = spriteImg('bomb');
+  n.__ent = { kind: 'object', name: 'Bomb', type: 'bomb', hint: 'Blows up the 3x3 around it in ' + plural(b.turns | 0, 'turn') + ' for ' + ((R_IT.bomb || {}).dmg || 30) + ' damage. It hits you too.' };
+  n.appendChild(img || el('span', { 'class': 'glyph', text: '💣' }));
+  n.appendChild(el('span', { 'class': 'dir-mark', text: b.turns | 0 }));
+  return n;
+}
+function objectEl(o) {
+  var d = OBJECTS[o.type] || { glyph: '▪' }, name = objName(o.type), img = spriteImg(o.type);
+  var n = el('div', { 'class': 'ent obj' + (img ? '' : ' ' + (d.cls || '')), 'aria-label': name });
+  n.__ent = { kind: 'object', name: name, type: o.type, hint: (o.used ? 'Already used. ' : '') + objHint(o.type) };
+  if (img) n.appendChild(img); else if (d.svg) n.innerHTML = SVG[d.svg]; else n.appendChild(el('span', { 'class': 'glyph', text: d.glyph }));
+  return n;
+}
+function pickupEl(pk) {
+  var d = PICKUPS[pk.type] || { glyph: '✦' }, name = pkName(pk.type), key = pk.type;
+  if (pk.type === 'item' && pk.item) { name = 'Item: ' + itemName(pk.item); if (hasSprite(pk.item)) key = pk.item; }
+  var img = spriteImg(key), frozen = pk.frozen > 0;
+  var n = el('div', { 'class': 'ent pickup' + (frozen ? ' frozen' : ''), 'aria-label': name + (frozen ? ' (frozen: bump it to crack the ice)' : '') });
+  n.__ent = { kind: 'pickup', name: name, type: key, hint: (frozen ? 'Frozen: bump it to crack the ice (0 Energy, takes the turn). ' : '') + (pk.type === 'item' && pk.item ? itemHint(pk.item) + ' ' : '') + pkHint(pk.type) };
+  if (img) n.appendChild(img);
+  else n.appendChild(d.orb ? el('span', { 'class': 'orb ' + d.orb }) : el('span', { 'class': 'glyph pk', text: d.glyph }));
+  if (frozen) { var ice = spriteImg('ice'); n.appendChild(ice ? el('span', { 'class': 'ice-spr' }, ice) : el('span', { 'class': 'ice' })); }
+  return n;
+}
+function hpBarEl(e) {
+  var pct = Math.max(0, Math.min(1, e.hp / e.maxHp)), step = e.maxHp > 80 ? e.maxHp / 8 : 10, ticks = [], t;
+  for (t = step; t < e.maxHp; t += step) ticks.push(el('i', { 'class': 'tick', style: 'left:calc(var(--u) * ' + (t / e.maxHp * 24).toFixed(2) + 'px)' }));
+  return el('span', { 'class': 'hpbar', 'aria-hidden': 'true' }, el('span', { 'class': 'track' }, el('span', { 'class': 'fill', style: 'width:' + (pct * 100).toFixed(1) + '%' }), ticks));
+}
+function shieldEl(n) {
+  return el('span', { 'class': 'shield', title: 'Shield ' + n },
+    el('span', { html: '<svg viewBox="0 0 11 13" aria-hidden="true"><path d="M5.5 .6 10.4 2.6 V6.4 C10.4 9.3 8.2 11.4 5.5 12.4 2.8 11.4 .6 9.3 .6 6.4 V2.6 Z" fill="#bff0ff" stroke="#0a4a5e" stroke-width="1"/></svg>' }),
+    el('b', { text: n }));
+}
+function enemyEl(e) {
+  var R = R_EN[e.type] || {};
+  var name = enemyName(e.type), color = R.color || '#ff5c5c', icon = R.icon || '👾';
+  var phase = e.phase || 'idle', inv = !(e.maxHp > 0);
+  var tip = name + (inv ? ' - invulnerable' : ' - ' + e.hp + '/' + e.maxHp + ' HP');
+  if (phase === 'charge') tip += ', strikes in ' + (e.turns != null ? e.turns : '?') + ' turn' + (e.turns === 1 ? '' : 's');
+  else if (phase === 'rest') tip += ', resting (cannot strike this turn)';
+  else if (phase === 'attack') tip += ', just attacked';
+  if (e.shield > 0) tip += ', shield ' + e.shield;
+  if (R.short) tip += '. ' + R.short;
+  var n = el('div', { 'class': 'ent enemy ph-' + phase + (inv ? ' inv' : '') + (e.shield > 0 ? ' shielded' : ''), style: '--c:' + color, 'aria-label': tip, 'data-type': e.type });
+  n.__ent = { kind: 'enemy', e: e, name: name, color: color, short: enemyShort(e.type) };
+  var sw = el('span', { 'class': 'sw' }), img = spriteImg(e.type);
+  sw.appendChild(img || el('span', { 'class': 'fb-badge', text: icon }));
+  n.appendChild(sw);
+  if (!inv && (e.hp < e.maxHp || phase === 'charge')) n.appendChild(hpBarEl(e));
+  if (e.shield > 0) n.appendChild(shieldEl(e.shield));
+  return n;
+}
+function playerEl() {
+  var sw = el('span', { 'class': 'sw' }), img = spriteImg('player');
+  sw.appendChild(img || el('span', { 'class': 'fb-badge', html: SVG.hero }));
+  var n = el('div', { 'class': 'ent player', 'aria-label': 'You' }, sw); n.__ent = { kind: 'player' }; return n;
+}
+
+/* ---- Inspect card: hover a piece (board or palette) to read it like the game's info panel ---- */
+var INSPECT = el('div', { 'class': 'inspect', id: 'inspect', hidden: true });
+var currentP = null, mode = 'edit';
+function phaseInfo(e) {
+  var inv = !(e.maxHp > 0), t = e.turns, pl = currentP && currentP.player;
+  if (inv) return { txt: 'Invulnerable. No action can go into its tile.', c: '#a78bfa' };
+  if (e.shield > 0) return { txt: 'Shield ' + e.shield + (/frogspawn/.test(e.type || '') ? ': invulnerable while its ' + plural(e.shield, 'frogglet') + ' live.' : '.'), c: '#3fd9ff' };
+  if (e.phase === 'charge') {
+    var aim = e.target && pl && e.target.x === pl.x && e.target.y === pl.y ? ' Aimed at your tile.' : (e.target ? ' Aimed at another tile.' : '');
+    if (t == null) return { txt: 'Winding up: timing unreliable in the mirage.' + aim, c: '#ff4f6d' };
+    return { txt: (t === 1 ? 'Winding up: strikes next turn.' : 'Winding up: strikes in ' + t + ' turns.') + aim, c: '#ff4f6d' };
+  }
+  if (e.phase === 'rest') return { txt: 'Resting: cannot strike this turn. Free hit.', c: '#43e8a4' };
+  if (e.phase === 'attack') return { txt: 'Just attacked: will not strike again this turn.', c: '#43e8a4' };
+  return { txt: 'Idle: no strike lined up yet.', c: '#b9b3d9' };
+}
+function inspectFill(d) {
+  clear(INSPECT); INSPECT.style.removeProperty('--st');
+  var head = el('div', { 'class': 'in-head' }), img;
+  if (d.kind === 'enemy') {
+    var e = d.e, inv = !(e.maxHp > 0), ph = phaseInfo(e);
+    img = spriteIcon(e.type, 28); if (img) head.appendChild(img);
+    head.appendChild(el('span', { 'class': 'in-name', text: d.name }));
+    head.appendChild(el('span', { 'class': 'in-hp', text: inv ? '0 HP' : e.hp + '/' + e.maxHp + ' HP' }));
+    INSPECT.appendChild(head);
+    if (!inv) INSPECT.appendChild(el('div', { 'class': 'in-bar' }, el('i', { style: 'width:' + Math.max(0, Math.min(100, e.hp / e.maxHp * 100)).toFixed(1) + '%' })));
+    if (mode === 'play') { INSPECT.style.setProperty('--st', ph.c); INSPECT.appendChild(el('div', { 'class': 'in-status', text: ph.txt })); }
+    else INSPECT.appendChild(el('div', { 'class': 'in-nums', text: enemyNumbers(e.type) }));
+    if (d.short) INSPECT.appendChild(el('div', { 'class': 'in-short', text: d.short + (/[.!?]$/.test(d.short) ? '' : '.') }));
+  } else if (d.kind === 'rule') {
+    img = spriteIcon(d.type, 28); if (img) head.appendChild(img);
+    head.appendChild(el('span', { 'class': 'in-name', text: d.name }));
+    INSPECT.appendChild(head);
+    if (d.numbers) INSPECT.appendChild(el('div', { 'class': 'in-nums', text: d.numbers }));
+    if (d.short) INSPECT.appendChild(el('div', { 'class': 'in-short', text: d.short + (/[.!?]$/.test(d.short) ? '' : '.') }));
+    if (d.tip) INSPECT.appendChild(el('div', { 'class': 'in-tip', text: d.tip }));
+    return;
+  } else if (d.kind === 'player') {
+    var p = currentP || {}, items = Array.isArray(p.items) ? p.items : [];
+    img = spriteIcon('player', 28); if (img) head.appendChild(img);
+    head.appendChild(el('span', { 'class': 'in-name', text: mode === 'play' ? 'You' : 'Hero start' }));
+    head.appendChild(el('span', { 'class': 'in-hp', text: (p.energy != null ? p.energy + '/' + p.maxEnergy : '?') + ' Energy' }));
+    INSPECT.appendChild(head);
+    if (p.maxEnergy) INSPECT.appendChild(el('div', { 'class': 'in-bar' }, el('i', { style: 'width:' + Math.max(0, Math.min(100, p.energy / p.maxEnergy * 100)).toFixed(1) + '%;background:linear-gradient(90deg,#1cb5e0,#3fd9ff)' })));
+    INSPECT.style.setProperty('--st', '#3fd9ff');
+    INSPECT.appendChild(el('div', { 'class': 'in-status', text: 'ATK ' + (p.atk != null ? p.atk : '?') + (items.length ? ' · ' + items.map(itemName).join(', ') : ' · no items') }));
+    INSPECT.appendChild(el('div', { 'class': 'in-short', text: 'Energy is your life force. A move costs 1, an attack or smash costs 0, Wait costs 1. Reach 0 and the run ends.' }));
+    if (mode === 'edit') INSPECT.appendChild(el('div', { 'class': 'in-tip', text: 'Pick "Hero start" in the palette and click a tile to move it.' }));
+    return;
+  } else {
+    img = spriteIcon(d.type, 28); if (img) head.appendChild(img);
+    head.appendChild(el('span', { 'class': 'in-name', text: d.name }));
+    INSPECT.appendChild(head);
+    if (d.hint) INSPECT.appendChild(el('div', { 'class': 'in-short', text: d.hint }));
+  }
+  if (mode === 'edit') INSPECT.appendChild(el('div', { 'class': 'in-tip', text: 'Right click to remove' }));
+}
+function inspectShow(entEl, col, anchor, below) {
+  col = col || entEl.closest('.q-board-col'); anchor = anchor || entEl.closest('.tile');
+  if (!col || !anchor) return;
+  if (INSPECT.parentNode !== col) col.appendChild(INSPECT);
+  inspectFill(entEl.__ent);
+  INSPECT.hidden = false;
+  var cr = col.getBoundingClientRect(), tr = anchor.getBoundingClientRect(), w = INSPECT.offsetWidth, hh = INSPECT.offsetHeight, left, top;
+  if (below) { left = tr.left - cr.left; top = tr.bottom - cr.top + 6; if (left + w > cr.width) left = Math.max(0, cr.width - w); }
+  else {
+    left = tr.right - cr.left + 8; top = tr.top - cr.top - 6;
+    if (left + w > cr.width) left = tr.left - cr.left - w - 8;
+    if (left < 0) left = Math.max(0, Math.min(cr.width - w, tr.left - cr.left));
+    top = Math.max(0, Math.min(cr.height - hh, top));
+  }
+  INSPECT.style.left = left + 'px'; INSPECT.style.top = top + 'px';
+}
+function inspectHide() { INSPECT.hidden = true; }
+function wireInspect(wrap) {
+  wrap.addEventListener('mouseover', function (ev) { var t = ev.target && ev.target.closest ? ev.target.closest('.ent') : null; if (t && t.__ent) inspectShow(t); });
+  wrap.addEventListener('mouseout', function (ev) { var t = ev.target && ev.target.closest ? ev.target.closest('.ent') : null; if (!t) return; var to = ev.relatedTarget; if (to && t.contains(to)) return; inspectHide(); });
+  wrap.addEventListener('mousedown', inspectHide);
+}
+
+/* =========================================================
+   3. The floor spec (what the builder edits, saves and shares)
+   ========================================================= */
+var spec = null;            // the floor being edited
+var heroDefaults = { energy: R_HERO.energy || 100, maxEnergy: R_HERO.maxEnergy || 100, atk: R_HERO.atk || 20 };
+var MAX_TALENTS = R_HERO.maxTalents || 3;
+var LIM = RULES.LIMITS || {};
+var MAX_ENERGY = LIM.maxEnergy || 999, MAX_ATK = LIM.maxAtk || 99, MIN_W = LIM.minW || 8, MAX_W = LIM.maxW || 20, MIN_H = LIM.minH || 6, MAX_H = LIM.maxH || 12;
+function tilesToRows(tiles, w, h) {
+  var rows = String(tiles || '').split('\n'), out = [], y, x, row, r;
+  for (y = 0; y < h; y++) { row = rows[y] || ''; r = []; for (x = 0; x < w; x++) r.push(row.charAt(x) === '#' ? 1 : 0); out.push(r); }
+  return out;
+}
+function rowsToTiles(rows) { return rows.map(function (r) { return r.map(function (v) { return v === 1 ? '#' : '.'; }).join(''); }).join('\n'); }
+function boardOf(s) { return { w: s.w, h: s.h, tiles: tilesToRows(s.tiles, s.w, s.h) }; }
+function normalizeSpec(s) {
+  s = (s && typeof s === 'object') ? deepCopy(s) : {};
+  s.v = 1;
+  s.w = Math.max(MIN_W, Math.min(MAX_W, s.w | 0 || 14)); s.h = Math.max(MIN_H, Math.min(MAX_H, s.h | 0 || 9));
+  s.name = String(s.name || '').slice(0, 40);
+  s.weather = (s.weather && R_WE[s.weather]) ? s.weather : null;
+  var rows = tilesToRows(s.tiles, s.w, s.h); s.tiles = rowsToTiles(rows);
+  if (!s.start || !inBounds(s.w, s.h, s.start)) s.start = { x: 1, y: Math.floor(s.h / 2) };
+  ['enemies', 'objects', 'pickups', 'traps'].forEach(function (k) { s[k] = (Array.isArray(s[k]) ? s[k] : []).filter(function (e) { return e && e.type && inBounds(s.w, s.h, e); }); });
+  s.hero = s.hero && typeof s.hero === 'object' ? s.hero : {};
+  s.hero.maxEnergy = Math.max(1, Math.min(MAX_ENERGY, s.hero.maxEnergy | 0 || heroDefaults.maxEnergy));
+  s.hero.energy = Math.max(1, Math.min(s.hero.maxEnergy, s.hero.energy | 0 || Math.min(heroDefaults.energy, s.hero.maxEnergy)));
+  s.hero.atk = Math.max(1, Math.min(MAX_ATK, s.hero.atk | 0 || heroDefaults.atk));
+  s.hero.items = (Array.isArray(s.hero.items) ? s.hero.items : []).filter(function (k) { return !!R_IT[k]; });
+  s.hero.talents = (Array.isArray(s.hero.talents) ? s.hero.talents : []).filter(function (k) { return !!R_TA[k]; }).slice(0, MAX_TALENTS);
+  return s;
+}
+function blankSpec(w, h) {
+  var rows = [], y, x, r;
+  for (y = 0; y < h; y++) { r = []; for (x = 0; x < w; x++) r.push(y === 0 || x === 0 || y === h - 1 || x === w - 1 ? 1 : 0); rows.push(r); }
+  return normalizeSpec({ w: w, h: h, name: spec ? spec.name : '', weather: spec ? spec.weather : null, tiles: rowsToTiles(rows), start: { x: 1, y: Math.floor(h / 2) }, hero: spec ? spec.hero : null });
+}
+function tileChar(x, y) { var rows = spec.tiles.split('\n'); return (rows[y] || '').charAt(x) === '#' ? '#' : '.'; }
+function setTile(x, y, ch) {
+  var rows = spec.tiles.split('\n'), row = rows[y] || '';
+  while (row.length < spec.w) row += '.';
+  if (row.charAt(x) === ch) return false;
+  rows[y] = row.slice(0, x) + ch + row.slice(x + 1);
+  spec.tiles = rows.join('\n');
+  return true;
+}
+function entityAt(x, y) {
+  var lists = ['enemies', 'objects', 'pickups', 'traps'], i, j, L;
+  for (i = 0; i < lists.length; i++) { L = spec[lists[i]]; for (j = 0; j < L.length; j++) if (L[j].x === x && L[j].y === y) return { list: lists[i], index: j, e: L[j] }; }
+  return null;
+}
+function removeAt(x, y) { var hit = entityAt(x, y), any = false; while (hit) { spec[hit.list].splice(hit.index, 1); any = true; hit = entityAt(x, y); } return any; }
+function isStart(x, y) { return spec.start.x === x && spec.start.y === y; }
+function cornCount() { return spec.pickups.filter(function (p) { return p.type === 'golden_corn'; }).length + spec.objects.filter(function (o) { return o.type === 'corn_stalk'; }).length; }
+function sampleNames() {
+  var n = null, S = SIM;
+  if (Array.isArray(S.SAMPLES)) n = S.SAMPLES.map(function (s) { return typeof s === 'string' ? s : (s && s.name); });
+  else if (S.SAMPLES && typeof S.SAMPLES === 'object') n = Object.keys(S.SAMPLES);
+  else if (Array.isArray(S.samples)) n = S.samples.map(function (s) { return typeof s === 'string' ? s : (s && s.name); });
+  else if (S.samples && typeof S.samples === 'object') n = Object.keys(S.samples);
+  else if (typeof S.sampleNames === 'function') n = S.sampleNames();
+  else if (S.sample && Array.isArray(S.sample.names)) n = S.sample.names;
+  n = (n || []).filter(function (x) { return typeof x === 'string' && x; });
+  if (!n.length) { var d = safeSample(); n = [(d && d.name) || 'Sample floor']; }
+  return n;
+}
+function safeSample(name) { try { return SIM.sample(name); } catch (e) { try { return SIM.sample(); } catch (e2) { return null; } } }
+
+/* =========================================================
+   4. Editor: board painting, validation, counters
+   ========================================================= */
+var brush = { kind: 'tile', type: 'wall', item: null, dir: 'right' };
+var tool = 'paint', painting = 0, editBoard = null, curTab = 'tiles';
+function editorView() {
+  return { title: spec.name || 'Your floor', board: boardOf(spec), player: { x: spec.start.x, y: spec.start.y },
+    energy: spec.hero.energy, maxEnergy: spec.hero.maxEnergy, atk: spec.hero.atk, items: spec.hero.items,
+    enemies: spec.enemies.map(function (e) { var hp = enemyHp(e.type); return { type: e.type, x: e.x, y: e.y, hp: hp, maxHp: hp, phase: 'idle', turns: 0, target: null, shield: 0 }; }),
+    objects: spec.objects, pickups: spec.pickups.map(function (p) { return { type: p.type, x: p.x, y: p.y, item: p.item, frozen: 0 }; }), traps: spec.traps, cues: [] };
+}
+function renderEditor() {
+  currentP = editorView(); inspectHide();
+  editBoard = renderBoard(currentP, $('#edit-board'), { cls: 'editing', role: 'grid' });
+  runValidate(); renderCounters();
+  $('#floor-name').value = spec.name;
+}
+function runValidate() {
+  var v;
+  try { v = SIM.validate(spec) || { ok: false, errors: ['validate() returned nothing'] }; } catch (e) { v = { ok: false, errors: ['Validation failed: ' + (e && e.message ? e.message : e)] }; }
+  var ok = !!v.ok, errs = Array.isArray(v.errors) ? v.errors : [], list = clear($('#valid'));
+  if (ok) list.appendChild(el('li', { 'class': 'ok', text: '✔ Floor is valid. Press "Play this floor" or copy the challenge link.' }));
+  else if (!errs.length) list.appendChild(el('li', { text: 'The floor is not valid yet.' }));
+  errs.forEach(function (m) { list.appendChild(el('li', { text: '✖ ' + m })); });
+  $('#btn-play').disabled = !ok; $('#btn-copy-edit').disabled = !ok;
+  return ok;
+}
+function renderCounters() {
+  var c = clear($('#counters'));
+  c.appendChild(el('span', { 'class': 'chip chip-atk' }, '👾 ', el('b', { text: spec.enemies.length }), ' ' + (spec.enemies.length === 1 ? 'enemy' : 'enemies')));
+  c.appendChild(el('span', { 'class': 'chip chip-trap' }, '⚠ ', el('b', { text: spec.traps.length }), ' ' + (spec.traps.length === 1 ? 'trap' : 'traps')));
+  c.appendChild(el('span', { 'class': 'chip chip-corn' }, '🌽 ', el('b', { text: cornCount() }), ' Golden Corn'));
+  c.appendChild(el('span', { 'class': 'chip chip-muted', text: spec.w + ' x ' + spec.h }));
+}
+function brushLabel() {
+  if (tool === 'erase') return 'Eraser';
+  switch (brush.kind) {
+    case 'tile': return brush.type === 'wall' ? 'Wall' : 'Floor';
+    case 'start': return 'Hero start';
+    case 'enemy': return enemyName(brush.type);
+    case 'object': return objName(brush.type);
+    case 'pickup': return brush.type === 'item' ? 'Item: ' + itemName(brush.item) : pkName(brush.type);
+    case 'trap': return trapName(brush.type) + (brush.type === 'arrow' ? ' ' + ARROWS[brush.dir] : '');
+  }
+  return pretty(brush.type);
+}
+function refreshBrush() {
+  $('#brush-lbl').textContent = 'Brush: ' + brushLabel();
+  $('#tool-paint').classList.toggle('sel', tool === 'paint'); $('#tool-erase').classList.toggle('sel', tool === 'erase');
+  $$('#pal-panel .pal').forEach(function (b) { b.classList.toggle('sel', tool === 'paint' && b.getAttribute('data-brush') === brush.kind + ':' + brush.type); });
+}
+function setBrush(kind, type) { brush.kind = kind; brush.type = type; tool = 'paint'; refreshBrush(); }
+function setTool(t) { tool = t; refreshBrush(); }
+/* One press of the brush on tile (x,y). Drag paints only tiles and the eraser; pieces are placed one click at a time. */
+function applyBrush(x, y, drag, erase) {
+  var changed = false, e;
+  if (!inBounds(spec.w, spec.h, { x: x, y: y })) return;
+  if (erase || tool === 'erase') { changed = removeAt(x, y); if (changed) SFX.play('click'); if (changed) afterEdit(); return; }
+  switch (brush.kind) {
+    case 'tile':
+      if (brush.type === 'wall') { if (isStart(x, y)) { if (!drag) toast('The hero starts here. Move the hero start first.', 2200); return; } changed = setTile(x, y, '#'); if (removeAt(x, y)) changed = true; }
+      else changed = setTile(x, y, '.');
+      break;
+    case 'start':
+      if (drag) return;
+      if (isStart(x, y)) return;
+      removeAt(x, y); setTile(x, y, '.'); spec.start = { x: x, y: y }; changed = true;
+      break;
+    case 'enemy': case 'object': case 'pickup': case 'trap':
+      if (drag) return;
+      if (isStart(x, y)) { toast('The hero starts here. Move the hero start first.', 2200); return; }
+      e = { type: brush.type, x: x, y: y };
+      if (brush.kind === 'pickup' && brush.type === 'item') e.item = brush.item;
+      if (brush.kind === 'trap' && brush.type === 'arrow') e.dir = brush.dir;
+      var hit = entityAt(x, y);
+      if (hit && hit.e.type === e.type && (hit.e.item || null) === (e.item || null) && (hit.e.dir || null) === (e.dir || null)) return; // same piece already here
+      removeAt(x, y);
+      if (!(brush.kind === 'trap' && brush.type === 'arrow')) setTile(x, y, '.'); // an arrow trap may sit in a wall
+      if (brush.kind === 'object' && brush.type === 'stairs') spec.objects = spec.objects.filter(function (o) { return o.type !== 'stairs'; });
+      spec[brush.kind === 'enemy' ? 'enemies' : brush.kind === 'object' ? 'objects' : brush.kind === 'pickup' ? 'pickups' : 'traps'].push(e);
+      changed = true;
+      break;
+  }
+  if (changed) { if (!drag) SFX.play('click'); afterEdit(); }
+}
+function afterEdit() { renderEditor(); refreshBrush(); }
+function tileFromEvent(ev) { var t = ev.target && ev.target.closest ? ev.target.closest('.tile') : null; return t ? { x: +t.getAttribute('data-x'), y: +t.getAttribute('data-y') } : null; }
+(function wireEditorBoard() {
+  var wrap = $('#edit-board');
+  wrap.addEventListener('contextmenu', function (ev) { ev.preventDefault(); });
+  wrap.addEventListener('mousedown', function (ev) {
+    var t = tileFromEvent(ev); if (!t) return;
+    ev.preventDefault();
+    if (ev.button === 2) { painting = 2; applyBrush(t.x, t.y, false, true); return; }
+    if (ev.button !== 0) return;
+    painting = 1; applyBrush(t.x, t.y, false, false);
+  });
+  wrap.addEventListener('mouseover', function (ev) {
+    if (!painting) return;
+    var t = tileFromEvent(ev); if (!t) return;
+    if (painting === 2 && (ev.buttons & 2)) applyBrush(t.x, t.y, true, true);
+    else if (painting === 1 && (ev.buttons & 1)) applyBrush(t.x, t.y, true, false);
+    else painting = 0;
+  });
+  document.addEventListener('mouseup', function () { painting = 0; });
+  wireInspect(wrap);
+})();
+function loadSpec(s, opts) {
+  opts = opts || {};
+  spec = normalizeSpec(s);
+  if (!brush.item) brush.item = keysOf(R_IT, ruleOn)[0] || null;
+  renderEditor(); renderTabs(); renderPalette(); refreshBrush();
+  if (!opts.silent) toast('Loaded "' + (spec.name || 'floor') + '".', 1800);
+}
+
+/* =========================================================
+   5. Palette: tabs, entries, hero form
+   ========================================================= */
+var TABS = [['tiles', 'Tiles'], ['enemies', 'Enemies'], ['objects', 'Objects'], ['loot', 'Loot'], ['traps', 'Traps'], ['hero', 'Hero']];
+function renderTabs() {
+  var box = clear($('#tabs'));
+  TABS.forEach(function (t) {
+    box.appendChild(el('button', { 'class': 'tab' + (curTab === t[0] ? ' sel' : ''), type: 'button', role: 'tab', 'aria-selected': curTab === t[0] ? 'true' : 'false', 'data-tab': t[0], text: t[1],
+      onclick: function () { curTab = t[0]; renderTabs(); renderPalette(); SFX.play('click'); } }));
+  });
+}
+function palIcon(key, glyph, svg) {
+  var ic = spriteIcon(key, 32), box = el('span', { 'class': 'pal-icon', 'aria-hidden': 'true' });
+  if (ic) box.appendChild(ic); else if (svg) box.innerHTML = svg; else box.appendChild(el('span', { 'class': 'glyph', text: glyph || '▪' }));
+  return box;
+}
+function palEntry(kind, type, name, sub, icon, hover) {
+  var b = el('button', { 'class': 'pal', type: 'button', 'data-brush': kind + ':' + type, title: name + (sub ? ' - ' + sub : '') }, icon,
+    el('span', { 'class': 'pal-text' }, el('span', { 'class': 'pal-name', text: name }), sub ? el('span', { 'class': 'pal-sub', text: sub }) : null));
+  b.addEventListener('click', function () { setBrush(kind, type); SFX.play('click'); });
+  if (hover) {
+    b.__ent = hover;
+    b.addEventListener('mouseenter', function () { inspectShow(b, $('#pal-wrap'), b, true); });
+    b.addEventListener('mouseleave', inspectHide);
+  }
+  return b;
+}
+function tileIcon(key) { var k = resolveTileKey(key), box = el('span', { 'class': 'pal-icon', 'aria-hidden': 'true' }); if (k) { var ic = spriteIcon(k, 32); if (ic) box.appendChild(ic); } else box.style.background = key === 'tile_wall_face' ? '#55667f' : '#2aa79f'; return box; }
+function renderPalette() {
+  var panel = clear($('#pal-panel')), grid = el('div', { 'class': 'pal-grid' });
+  inspectHide();
+  if (curTab === 'tiles') {
+    grid.appendChild(palEntry('tile', 'wall', 'Wall', 'click or drag', tileIcon('tile_wall_face')));
+    grid.appendChild(palEntry('tile', 'floor', 'Floor', 'click or drag', tileIcon('tile_floor_a')));
+    grid.appendChild(palEntry('start', 'start', 'Hero start', 'one per floor', palIcon('player', '🙂', SVG.hero), { kind: 'rule', type: 'player', name: 'Hero start', short: 'Where you begin. Must be an empty floor tile.' }));
+    grid.appendChild(palEntry('object', 'stairs', objName('stairs'), 'exactly one', palIcon('stairs', null, SVG.stairs), { kind: 'rule', type: 'stairs', name: objName('stairs'), short: objHint('stairs') }));
+    panel.appendChild(grid);
+    panel.appendChild(el('div', { 'class': 'sub-title', text: 'GRID SIZE' }));
+    var wIn = el('input', { type: 'number', min: MIN_W, max: MAX_W, value: spec.w }), hIn = el('input', { type: 'number', min: MIN_H, max: MAX_H, value: spec.h });
+    panel.appendChild(el('div', { 'class': 'form-row' },
+      el('label', { 'class': 'field' }, el('span', { text: 'Width ' + MIN_W + '-' + MAX_W }), wIn), el('label', { 'class': 'field' }, el('span', { text: 'Height ' + MIN_H + '-' + MAX_H }), hIn),
+      el('button', { 'class': 'btn btn-ghost btn-sm', type: 'button', text: 'Resize', onclick: function () { resizeGrid(+wIn.value, +hIn.value); } })));
+    panel.appendChild(el('p', { 'class': 'pal-note', text: 'New cells are walls. Pieces outside the new grid are dropped. Anything outside the grid counts as wall.' }));
+  } else if (curTab === 'enemies') {
+    var types = keysOf(R_EN, ruleOn);
+    if (!types.length) panel.appendChild(el('p', { 'class': 'pal-note', text: 'No enemies are available in the simulator yet.' }));
+    types.forEach(function (t) {
+      grid.appendChild(palEntry('enemy', t, enemyName(t), enemyIsInv(t) ? 'invulnerable' : enemyHp(t) + ' HP' + (dmgText((R_EN[t] || {}).dmg) ? ' · ' + dmgText((R_EN[t] || {}).dmg) + ' dmg' : ''),
+        palIcon(t, (R_EN[t] || {}).icon || '👾'), { kind: 'rule', type: t, name: enemyName(t), numbers: enemyNumbers(t), short: enemyShort(t), tip: 'Click a floor tile to place it' }));
+    });
+    panel.appendChild(grid);
+    panel.appendChild(el('p', { 'class': 'pal-note', text: 'Hover an enemy for its numbers. Enemies act with the real wind-up, rest and range rules.' }));
+  } else if (curTab === 'objects') {
+    PAL_OBJECTS.forEach(function (t) { grid.appendChild(palEntry('object', t, objName(t), '', palIcon(t, (OBJECTS[t] || {}).glyph, SVG[(OBJECTS[t] || {}).svg]), { kind: 'rule', type: t, name: objName(t), short: objHint(t), tip: 'Click a floor tile to place it' })); });
+    panel.appendChild(grid);
+    panel.appendChild(el('p', { 'class': 'pal-note', text: 'Pots and crates are smashed for 0 Energy and can hide loot (or a mimic). Corn stalks break into Golden Corn.' }));
+  } else if (curTab === 'loot') {
+    PAL_PICKUPS.forEach(function (t) { grid.appendChild(palEntry('pickup', t, pkName(t), t === 'item' ? itemName(brush.item) : '', palIcon(t === 'item' && brush.item && hasSprite(brush.item) ? brush.item : t, (PICKUPS[t] || {}).glyph), { kind: 'rule', type: t, name: pkName(t), short: pkHint(t), tip: 'Click a floor tile to place it' })); });
+    panel.appendChild(grid);
+    var itemKeys = keysOf(R_IT, ruleOn), sel = el('select', {});
+    itemKeys.forEach(function (k) { sel.appendChild(el('option', { value: k, selected: k === brush.item ? true : null, text: itemName(k) })); });
+    sel.addEventListener('change', function () { brush.item = sel.value; if (brush.kind === 'pickup' && brush.type === 'item') { /* keep the item brush */ } renderPalette(); refreshBrush(); });
+    panel.appendChild(el('div', { 'class': 'sub-title', text: 'ITEM ON THE FLOOR' }));
+    panel.appendChild(el('div', { 'class': 'form-row' }, el('label', { 'class': 'field' }, el('span', { text: 'Item pickup gives' }), sel)));
+    panel.appendChild(el('p', { 'class': 'pal-note', text: brush.item ? itemHint(brush.item) || 'Pick the item, then place an "Item" pickup on the board.' : 'No items available.' }));
+  } else if (curTab === 'traps') {
+    grid.appendChild(palEntry('trap', 'spike', trapName('spike'), 'rises every other turn', palIcon('spike', null, SVG.spike), { kind: 'rule', type: 'spike', name: trapName('spike'), short: trapHint('spike'), tip: 'Click a floor tile to place it' }));
+    grid.appendChild(palEntry('trap', 'arrow', trapName('arrow'), 'fires ' + DIR_WORD[brush.dir], palIcon('arrow', null, SVG.arrow), { kind: 'rule', type: 'arrow', name: trapName('arrow'), short: trapHint('arrow'), tip: 'Pick a direction, then click a floor tile' }));
+    panel.appendChild(grid);
+    panel.appendChild(el('div', { 'class': 'sub-title', text: 'ARROW DIRECTION' }));
+    var dirs = el('div', { 'class': 'dirs' });
+    DIR_ORDER.forEach(function (d) { dirs.appendChild(el('button', { 'class': d === brush.dir ? 'sel' : '', type: 'button', title: 'Fires ' + DIR_WORD[d], text: ARROWS[d], onclick: function () { brush.dir = d; setBrush('trap', 'arrow'); renderPalette(); } })); });
+    panel.appendChild(dirs);
+    panel.appendChild(el('p', { 'class': 'pal-note', text: 'The arrow flies from the trap in that direction until it hits a wall.' }));
+  } else if (curTab === 'hero') {
+    renderHeroTab(panel);
+  }
+  refreshBrush();
+}
+function numField(label, value, min, max, onChange) {
+  var input = el('input', { type: 'number', min: min, max: max, value: value });
+  input.addEventListener('change', function () { var v = Math.max(min, Math.min(max, +input.value || min)); input.value = v; onChange(v); });
+  return el('label', { 'class': 'field' }, el('span', { text: label }), input);
+}
+function renderHeroTab(panel) {
+  var H = spec.hero;
+  panel.appendChild(el('div', { 'class': 'sub-title', text: 'HERO' }));
+  panel.appendChild(el('div', { 'class': 'form-row' },
+    numField('Energy', H.energy, 1, MAX_ENERGY, function (v) { H.energy = Math.min(v, H.maxEnergy); renderHeroTab(clear(panel)); runValidate(); }),
+    numField('Max energy', H.maxEnergy, 1, MAX_ENERGY, function (v) { H.maxEnergy = v; if (H.energy > v) H.energy = v; renderHeroTab(clear(panel)); runValidate(); }),
+    numField('ATK', H.atk, 1, MAX_ATK, function (v) { H.atk = v; runValidate(); })));
+  panel.appendChild(el('p', { 'class': 'hero-summary', text: 'Energy is HP and the move budget: a step or Wait costs 1, an attack or smash costs 0. ATK is the damage of one hit.' }));
+  var itemKeys = keysOf(R_IT, ruleOn), checks = el('div', { 'class': 'checks' });
+  panel.appendChild(el('div', { 'class': 'sub-title', text: 'ITEMS IN THE BAG' }));
+  if (!itemKeys.length) checks.appendChild(el('span', { 'class': 'pal-note', text: 'No items available.' }));
+  itemKeys.forEach(function (k) {
+    var on = H.items.indexOf(k) >= 0, cb = el('input', { type: 'checkbox', checked: on ? true : null }), ic = spriteIcon(k, 22);
+    var lab = el('label', { 'class': 'check' + (on ? ' on' : ''), title: itemHint(k) || itemName(k) }, cb, ic, el('span', { text: itemName(k) }));
+    cb.addEventListener('change', function () { H.items = H.items.filter(function (x) { return x !== k; }); if (cb.checked) H.items.push(k); lab.classList.toggle('on', cb.checked); runValidate(); });
+    checks.appendChild(lab);
+  });
+  panel.appendChild(checks);
+  var talKeys = keysOf(R_TA, ruleOn), tchecks = el('div', { 'class': 'checks' });
+  panel.appendChild(el('div', { 'class': 'sub-title', text: 'TALENTS (MAX ' + MAX_TALENTS + ')' }));
+  if (!talKeys.length) tchecks.appendChild(el('span', { 'class': 'pal-note', text: 'No talents available.' }));
+  talKeys.forEach(function (k) {
+    var on = H.talents.indexOf(k) >= 0, full = !on && H.talents.length >= MAX_TALENTS, cb = el('input', { type: 'checkbox', checked: on ? true : null, disabled: full ? true : null });
+    var lab = el('label', { 'class': 'check' + (on ? ' on' : '') + (full ? ' off' : ''), title: talentHint(k) || talentName(k) }, cb, el('span', { text: talentName(k) }));
+    cb.addEventListener('change', function () { H.talents = H.talents.filter(function (x) { return x !== k; }); if (cb.checked && H.talents.length < MAX_TALENTS) H.talents.push(k); renderHeroTab(clear(panel)); runValidate(); });
+    tchecks.appendChild(lab);
+  });
+  panel.appendChild(tchecks);
+  var tal = H.talents.map(function (k) { return talentName(k) + ': ' + (talentHint(k) || 'no description'); });
+  if (tal.length) panel.appendChild(el('p', { 'class': 'pal-note', text: tal.join(' ') }));
+  panel.appendChild(el('div', { 'class': 'sub-title', text: 'WEATHER' }));
+  var wsel = el('select', {}), wkeys = keysOf(R_WE, ruleOn);
+  wsel.appendChild(el('option', { value: '', selected: !spec.weather ? true : null, text: 'Clear' }));
+  wkeys.forEach(function (k) { wsel.appendChild(el('option', { value: k, selected: spec.weather === k ? true : null, text: weatherLabel(k) })); });
+  var wnote = el('p', { 'class': 'pal-note', text: weatherHint(spec.weather) });
+  wsel.addEventListener('change', function () { spec.weather = wsel.value || null; wnote.textContent = weatherHint(spec.weather); runValidate(); });
+  panel.appendChild(el('div', { 'class': 'form-row' }, el('label', { 'class': 'field' }, el('span', { text: 'Weather' }), wsel)));
+  panel.appendChild(wnote);
+}
+function resizeGrid(w, h) {
+  w = Math.max(MIN_W, Math.min(MAX_W, w | 0 || spec.w)); h = Math.max(MIN_H, Math.min(MAX_H, h | 0 || spec.h));
+  if (w === spec.w && h === spec.h) return;
+  var old = tilesToRows(spec.tiles, spec.w, spec.h), rows = [], y, x, r;
+  for (y = 0; y < h; y++) { r = []; for (x = 0; x < w; x++) r.push(y < spec.h && x < spec.w ? old[y][x] : 1); rows.push(r); }
+  spec.w = w; spec.h = h; spec.tiles = rowsToTiles(rows);
+  spec = normalizeSpec(spec);
+  if (tileChar(spec.start.x, spec.start.y) === '#') setTile(spec.start.x, spec.start.y, '.');
+  afterEdit(); renderPalette();
+  toast('Grid is now ' + w + ' x ' + h + '.', 1800);
+}
+function clearFloor() {
+  spec = blankSpec(spec.w, spec.h);
+  afterEdit(); renderPalette();
+  toast('Floor cleared. Place the stairs to make it playable.', 2600);
+}
+
+/* =========================================================
+   6. Play mode: the real rules from MOG_SIM, rendered like the quiz
+   ========================================================= */
+var game = null, playSpec = null, fromLink = false, playBoard = null, lastEvents = [], dirPick = null;
+function showMode(m) {
+  mode = m;
+  $('#screen-edit').classList.toggle('active', m === 'edit');
+  $('#screen-play').classList.toggle('active', m === 'play');
+  document.body.setAttribute('data-mode', m);
+  inspectHide(); closeDirPick(); closeMenu();
+  refit();
+  window.scrollTo(0, 0);
+}
+function safeCues(st) { try { var c = SIM.cues(st); return Array.isArray(c) ? c : []; } catch (e) { return []; } }
+function playView(st) {
+  var pl = st.player || {}, enemies = st.enemies || [];
+  if (st.weather === 'heatwave') enemies = enemies.map(function (e) { var c = {}; for (var k in e) c[k] = e[k]; c.turns = null; return c; }); // mirage: the zones and the aim stay visible, only the timer is hidden
+  return { title: st.name || playSpec.name || 'Your floor', board: boardOf(st), player: pl, energy: pl.energy, maxEnergy: pl.maxEnergy, atk: pl.atk, items: pl.items,
+    enemies: enemies, objects: st.objects || [], pickups: st.pickups || [], traps: st.traps || [], bombs: st.bombs || [], cues: safeCues(st) };
+}
+function startPlay(s, opts) {
+  opts = opts || {};
+  playSpec = normalizeSpec(s);
+  try { game = SIM.newGame(deepCopy(playSpec)); } catch (e) { toast('The simulator could not start this floor: ' + (e && e.message ? e.message : e), 6000); return; }
+  if (!game || !game.player) { toast('The simulator returned no game state.', 5000); return; }
+  lastEvents = [];
+  showMode('play');
+  renderPlay(null, null, null);
+  if (!opts.quiet) SFX.play('ok');
+}
+function renderPlay(events, prev, pressedId) {
+  var st = game;
+  currentP = playView(st); inspectHide();
+  playBoard = renderBoard(currentP, $('#play-board'), { cls: 'revealed', hideAmbush: true });
+  renderHud(st); renderLog(st);
+  var playing = st.status === 'playing';
+  $('#opt-list').hidden = !playing; $('#keys-hint').hidden = !playing;
+  $('#side-title').textContent = playing ? 'YOUR MOVE' : (st.status === 'won' ? 'FLOOR CLEARED' : 'RUN OVER');
+  $('#side-sub').textContent = playing ? (playSpec.name || 'Your floor') : (st.status === 'won' ? 'you reached the stairs' : 'Energy hit zero');
+  $('#side-sub').title = playSpec.name || 'Your floor';
+  renderSideActions(playing);
+  if (playing) { renderActions(st); $('#endcard').hidden = true; }
+  else renderEnd(events || []);
+  if (events) animateEvents(events, prev, pressedId);
+}
+function renderHud(st) {
+  var pl = st.player, hud = clear($('#hud')), pct = pl.maxEnergy > 0 ? Math.max(0, Math.min(100, pl.energy / pl.maxEnergy * 100)) : 0;
+  hud.appendChild(el('div', { 'class': 'hud-energy' }, el('span', { 'class': 'hud-lbl', text: 'ENERGY' }),
+    el('div', { 'class': 'pbar' + (pl.energy <= 15 ? ' low' : ''), role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': pl.maxEnergy, 'aria-valuenow': pl.energy }, el('i', { style: 'width:' + pct.toFixed(1) + '%' })),
+    el('span', { 'class': 'hud-val', text: pl.energy + '/' + pl.maxEnergy })));
+  hud.appendChild(el('span', { 'class': 'chip chip-corn', title: 'Golden Corn collected' }, '🌽 ', el('b', { text: pl.corn | 0 }), ' Golden Corn'));
+  hud.appendChild(el('span', { 'class': 'chip chip-coin', title: 'Coins collected' }, '🪙 ', el('b', { text: pl.coins | 0 }), ' coins'));
+  hud.appendChild(el('span', { 'class': 'chip chip-turn', title: 'Turns played' }, 'Turn ', el('b', { text: st.turn | 0 })));
+  hud.appendChild(el('span', { 'class': 'chip chip-atk', title: 'Damage per hit' }, '⚔ ATK ', el('b', { text: pl.atk })));
+  var items = Array.isArray(pl.items) ? pl.items : [], counts = {}, order = [];
+  items.forEach(function (id) { if (!counts[id]) { counts[id] = 0; order.push(id); } counts[id]++; });
+  if (!order.length) hud.appendChild(el('span', { 'class': 'chip chip-muted', text: 'no items' }));
+  order.forEach(function (id) { var ic = spriteIcon(id, 20); hud.appendChild(el('span', { 'class': 'chip chip-item', title: itemHint(id) || 'Item in the bag' }, ic || el('span', { text: '🎒' }), el('span', { text: itemName(id) + (counts[id] > 1 ? ' ×' + counts[id] : '') }))); });
+  if (st.weather) hud.appendChild(el('span', { 'class': 'chip chip-weather', title: weatherHint(st.weather), text: weatherLabel(st.weather) }));
+  if (pl.poison > 0) hud.appendChild(el('span', { 'class': 'chip chip-trap', title: 'Poison: 1 Energy per turn' }, spriteIcon('status_poison', 18) || '☠ ', el('span', { text: ' Poison ' + pl.poison })));
+  if (pl.frostbite > 0) hud.appendChild(el('span', { 'class': 'chip chip-weather', title: 'Frostbite: attacks cost 2 Energy' }, spriteIcon('status_frostbite', 18) || '❄ ', el('span', { text: ' Frostbite ' + pl.frostbite })));
+  if (pl.freeMoves > 0) hud.appendChild(el('span', { 'class': 'chip chip-energy', title: talentHint('swift_steps') || 'Your next steps cost 0 Energy' }, 'Free moves: ', el('b', { text: pl.freeMoves })));
+}
+function renderSideActions(playing) { // Restart / Edit floor live in the YOUR MOVE header; the end card has its own buttons
+  var box = clear($('#side-actions'));
+  if (!playing) return;
+  box.appendChild(el('button', { 'class': 'icon-btn', type: 'button', title: 'Restart this floor (same seed)', onclick: function () { SFX.play('click'); startPlay(playSpec, { quiet: true }); }, text: '↺ Restart' }));
+  box.appendChild(el('button', { 'class': 'icon-btn', type: 'button', title: 'Back to the editor', onclick: editThisFloor, text: '✎ Edit floor' }));
+}
+function renderLog(st) {
+  var box = clear($('#log')), lines = (Array.isArray(st.log) ? st.log : []).slice(-6);
+  box.appendChild(el('div', { 'class': 'log-title', text: 'LOG' }));
+  if (!lines.length) box.appendChild(el('div', { 'class': 'ln' }, el('b', { text: 'T0' }), el('span', { text: 'Your floor. Reach the stairs before your Energy runs out.' })));
+  lines.forEach(function (l) { box.appendChild(el('div', { 'class': 'ln' }, el('b', { text: 'T' + (l.turn | 0) }), el('span', { text: String(l.text || '') }))); });
+}
+function isBlocked(o) { return !!o && (o.enabled === false || o.kind === 'blocked'); }
+function optKind(o, id) { return isBlocked(o) ? 'blocked' : (o.kind || (id === 'pass' ? 'pass' : /^item/.test(id) ? 'item' : 'move')); }
+function actionWord(o, kind) { var first = String(o.label || '').split(/\s+/)[0]; if (kind === 'break' && first) return first; return KIND_WORD[kind] || first || pretty(kind); } // "Smash", "Break", "Open" or "Crack" straight from the engine's label
+function actionLabel(o, id) { if (o.label) return o.label; var k = optKind(o, id); if (id === 'pass') return 'Wait'; return (KIND_WORD[k] || pretty(k)) + ' ' + (DIR_WORD[id] || ''); }
+function setHL(id, on) { $$('#play-board .act[data-id="' + id + '"], #opt-list .opt[data-id="' + id + '"]').forEach(function (n) { n.classList.toggle('hl', on); }); }
+function hoverSync(n, id) {
+  ['mouseenter', 'focus'].forEach(function (ev) { n.addEventListener(ev, function () { setHL(id, true); }); });
+  ['mouseleave', 'blur'].forEach(function (ev) { n.addEventListener(ev, function () { setHL(id, false); }); });
+}
+function actEl(o, id) {
+  var kind = optKind(o, id), label = actionLabel(o, id);
+  var n = el('button', { 'class': 'act act-' + id + ' act-' + kind, type: 'button', 'data-id': id, title: actionWord(o, kind) + ' - ' + label, 'aria-label': label });
+  n.appendChild(el('span', { 'class': 'act-glyph', 'aria-hidden': 'true', text: id === 'pass' ? '◎' : (ARROWS[id] || '•') }));
+  n.addEventListener('click', function () { press(id); });
+  hoverSync(n, id);
+  return n;
+}
+function optionButton(o, id, extraSub) {
+  var blocked = isBlocked(o), kind = optKind(o, id), label = actionLabel(o, id), sub = blocked ? (o.why || 'Not possible') : [o.sub, extraSub].filter(Boolean).join(' · ');
+  var btn = el('button', { 'class': 'opt opt-' + id, type: 'button', 'data-id': id, 'data-kind': kind, disabled: blocked ? true : null,
+    title: (KIND_LABEL[kind] || pretty(kind)) + ': ' + label + (sub ? ' (' + sub + ')' : ''), 'aria-label': label + (sub ? ', ' + sub : '') + (blocked ? ', not possible' : '') });
+  btn.appendChild(el('span', { 'class': 'opt-arrow', 'aria-hidden': 'true', text: blocked ? '✕' : (ARROWS[id] || '•') }));
+  btn.appendChild(el('span', { 'class': 'opt-text' }, el('span', { 'class': 'opt-label', text: label }), sub ? el('span', { 'class': 'opt-sub', text: sub }) : null));
+  btn.appendChild(el('span', { 'class': 'opt-kind', text: KIND_LABEL[kind] || pretty(kind) }));
+  if (!blocked) btn.addEventListener('click', function () { press(id); });
+  hoverSync(btn, id);
+  return btn;
+}
+function itemButton(g) {
+  var enabled = g.variants.some(function (v) { return !isBlocked(v.a); }), key = g.key, icon = spriteIcon(key, 30);
+  var why = enabled ? '' : (g.variants[0].a.why || 'Not possible now'), hint = itemHint(key);
+  var label = 'Use ' + itemName(key), sub = enabled ? (g.dir ? 'pick a direction' : hint) : why;
+  var btn = el('button', { 'class': 'opt opt-item', type: 'button', 'data-id': 'item:' + key, 'data-kind': 'item', disabled: enabled ? null : true,
+    title: 'Item: ' + label + (hint ? ' (' + hint + ')' : ''), 'aria-label': label + (sub ? ', ' + sub : '') + (enabled ? '' : ', not possible') });
+  btn.appendChild(el('span', { 'class': 'opt-icon', 'aria-hidden': 'true' }, icon || el('span', { 'class': 'opt-arrow', text: '✦' })));
+  btn.appendChild(el('span', { 'class': 'opt-text' }, el('span', { 'class': 'opt-label', text: label }), sub ? el('span', { 'class': 'opt-sub', text: sub }) : null));
+  btn.appendChild(el('span', { 'class': 'opt-kind', text: 'Item · key I' }));
+  if (enabled) btn.addEventListener('click', function () { useItem(g); });
+  hoverSync(btn, 'item:' + key);
+  return btn;
+}
+/* actions(state) -> { byId: {up,left,right,down,pass}, items: [ { key, variants:[{a, dir}], dir: needs a direction } ] } */
+function actionRows(st) {
+  var acts; try { acts = SIM.actions(st) || []; } catch (e) { acts = []; }
+  var byId = {}, items = {}, order = [];
+  acts.forEach(function (a) {
+    if (!a || !a.id) return;
+    var parts = String(a.id).split(':');
+    if (parts[0] === 'item' && parts[1]) { var g = items[parts[1]]; if (!g) { g = items[parts[1]] = { key: parts[1], variants: [], dir: false, dirs: null }; order.push(g); } g.variants.push({ a: a, dir: parts[2] && DIRS[parts[2]] ? parts[2] : null }); }
+    else byId[a.id] = a;
+  });
+  order.forEach(function (g) {
+    var a0 = g.variants[0].a;
+    g.dir = g.variants.some(function (v) { return !!v.dir; }) || (a0.directional != null ? !!a0.directional : itemNeedsDir(g.key));
+    if (Array.isArray(a0.dirs) && a0.dirs.length) { g.dirs = {}; a0.dirs.forEach(function (d) { if (DIRS[d]) g.dirs[d] = true; }); }
+  });
+  return { byId: byId, items: order };
+}
+function attackSub(o, id, st) { // "HP 30 · resting" for attack rows, like the quiz
+  var d = DIRS[id]; if (!d || optKind(o, id) !== 'attack') return '';
+  var pl = st.player, tx = o.target ? o.target.x : pl.x + d[0], ty = o.target ? o.target.y : pl.y + d[1], e = null;
+  (st.enemies || []).forEach(function (q) { if (q.x === tx && q.y === ty) e = q; });
+  if (!e) return '';
+  var parts = o.sub ? [] : [e.maxHp > 0 ? 'HP ' + e.hp : 'invulnerable']; // the engine's sub already carries the HP
+  if (e.phase === 'rest') parts.push('resting'); else if (e.phase === 'charge') parts.push(st.weather === 'heatwave' || e.turns == null ? 'winding up (mirage)' : e.turns === 1 ? 'strikes next turn' : 'strikes in ' + e.turns);
+  else if (e.phase === 'attack') parts.push('just attacked');
+  if (e.shield > 0 && !o.sub) parts.push('shield ' + e.shield);
+  return parts.join(' · ');
+}
+function renderActions(st) {
+  var A = actionRows(st), pl = st.player, board = playBoard, list = clear($('#opt-list'));
+  if (board) {
+    DIR_ORDER.forEach(function (id) {
+      var o = A.byId[id], d = DIRS[id]; if (!o || isBlocked(o)) return;
+      var tx = o.target ? o.target.x : pl.x + d[0], ty = o.target ? o.target.y : pl.y + d[1];
+      var tile = board.querySelector('.tile[data-x="' + tx + '"][data-y="' + ty + '"]');
+      if (tile) tile.appendChild(actEl(o, id));
+    });
+    var mine = board.querySelector('.tile.has-player');
+    if (A.byId.pass && !isBlocked(A.byId.pass) && mine) mine.appendChild(actEl(A.byId.pass, 'pass'));
+  }
+  DIR_ORDER.concat(['pass']).forEach(function (id) { if (A.byId[id]) list.appendChild(optionButton(A.byId[id], id, attackSub(A.byId[id], id, st))); });
+  A.items.forEach(function (g) { list.appendChild(itemButton(g)); });
+  if (!list.children.length) list.appendChild(el('p', { 'class': 'side-help', text: 'The simulator returned no moves.' }));
+}
+function press(id) {
+  if (mode !== 'play' || !game || game.status !== 'playing' || dirPick) return;
+  var A = actionRows(game), o = A.byId[id];
+  if (!o) return;
+  if (isBlocked(o)) { if (o.why) toast(o.why, 1600); SFX.play('click'); return; }
+  doStep(id, null);
+}
+function useItem(g) {
+  if (!g) return;
+  var live = g.variants.filter(function (v) { return !isBlocked(v.a); });
+  if (!live.length) { toast(g.variants[0] && g.variants[0].a.why || 'That item cannot be used now.', 1800); return; }
+  if (!g.dir) { doStep(live[0].a.id, null); return; }
+  var byDir = {}; live.forEach(function (v) { if (v.dir) byDir[v.dir] = v.a.id; });
+  var explicit = live.some(function (v) { return !!v.dir; });
+  openDirPick(itemName(g.key), explicit ? byDir : g.dirs, function (dir) {
+    if (explicit) doStep(byDir[dir], null); else doStep(live[0].a.id, { dir: dir });
+  });
+}
+function pressItem() { // key I: the first usable item
+  var A = actionRows(game), g = A.items.filter(function (x) { return x.variants.some(function (v) { return !isBlocked(v.a); }); })[0];
+  if (!g) { if (A.items.length) toast(A.items[0].variants[0].a.why || 'No item can be used now.', 1600); else toast('No items in the bag.', 1600); return; }
+  useItem(g);
+}
+function doStep(id, opts) {
+  var r, prev = game;
+  try { r = opts ? SIM.step(prev, id, opts) : SIM.step(prev, id); } catch (e) { toast('The simulator hit an error: ' + (e && e.message ? e.message : e), 6000); if (window.console) console.error(e); return; }
+  if (!r || !r.state) { toast('The simulator returned no state.', 4000); return; }
+  game = r.state; lastEvents = Array.isArray(r.events) ? r.events : [];
+  renderPlay(lastEvents, prev, id);
+}
+function openDirPick(name, allowed, onPick) {
+  closeDirPick();
+  var col = $('#play-col'), pad = el('div', { 'class': 'dirpad' });
+  function b(d) {
+    var ok = !allowed || !!allowed[d];
+    return el('button', { type: 'button', disabled: ok ? null : true, title: DIR_WORD[d], text: ARROWS[d], onclick: function () { if (ok) pick(d); } });
+  }
+  function pick(d) { var cb = onPick; closeDirPick(); cb(d); }
+  pad.appendChild(el('span')); pad.appendChild(b('up')); pad.appendChild(el('span'));
+  pad.appendChild(b('left')); pad.appendChild(el('span')); pad.appendChild(b('right'));
+  pad.appendChild(el('span')); pad.appendChild(b('down')); pad.appendChild(el('span'));
+  dirPick = el('div', { 'class': 'dirpick', role: 'dialog', 'aria-label': name + ': choose a direction' },
+    el('div', { 'class': 'dirpick-card' }, el('div', { 'class': 'dirpick-title', text: name + ': which direction?' }), pad,
+      el('button', { 'class': 'btn btn-ghost btn-sm', type: 'button', text: 'Cancel', onclick: closeDirPick }),
+      el('div', { 'class': 'dirpick-hint', text: 'Arrow keys pick, Esc cancels' })));
+  dirPick.__pick = function (d) { if (!allowed || allowed[d]) pick(d); };
+  col.appendChild(dirPick);
+}
+function closeDirPick() { if (dirPick && dirPick.parentNode) dirPick.parentNode.removeChild(dirPick); dirPick = null; }
+function animateEvents(events, prev, pressedId) {
+  var board = playBoard, pl = board ? board.querySelector('.player') : null, st = game;
+  if (!board) return;
+  var t = {}; events.forEach(function (e) { if (e && e.t) t[e.t] = true; });
+  var hurt = !!(t.hit || t.spike || t.arrow) || (!!t.explode && prev && st.player.energy < prev.player.energy - 1);
+  if (pl && !REDUCED_MOTION) {
+    var d = DIRS[pressedId] || null;
+    if (t.move && prev) { var dx = st.player.x - prev.player.x, dy = st.player.y - prev.player.y; if (dx || dy) { pl.style.setProperty('--mx', dx); pl.style.setProperty('--my', dy); pl.classList.add('slide'); } }
+    else if ((t.attack || t.smash) && d) { pl.style.setProperty('--mx', d[0]); pl.style.setProperty('--my', d[1]); pl.classList.add('lunge'); }
+    else if (t.pass || t.item) pl.classList.add('bob');
+  }
+  events.forEach(function (e) {
+    if (!e) return;
+    if (e.t === 'attack' && inBounds(st.w, st.h, e)) { var en = board.querySelector('.tile[data-x="' + e.x + '"][data-y="' + e.y + '"] .enemy'); if (en) en.classList.add('hurt'); }
+    if (e.t === 'kill') {
+      var src = null; (prev && prev.enemies || []).forEach(function (q) { if (q.id === e.enemyId) src = q; });
+      var gx = inBounds(st.w, st.h, e) ? e.x : (src ? src.x : -1), gy = inBounds(st.w, st.h, e) ? e.y : (src ? src.y : -1);
+      var tile = board.querySelector('.tile[data-x="' + gx + '"][data-y="' + gy + '"]');
+      if (tile && src && !REDUCED_MOTION) { var ghost = el('div', { 'class': 'ent enemy dying', 'aria-hidden': 'true' }, el('span', { 'class': 'sw' }, spriteImg(src.type) || el('span', { 'class': 'fb-badge', text: '👾' }))); tile.appendChild(ghost); setTimeout(function () { if (ghost.parentNode) ghost.parentNode.removeChild(ghost); }, 700); }
+    }
+    if (e.t === 'blocked' && e.text) toast(e.text, 1500);
+  });
+  if (st.status === 'dead') { board.classList.add('lethal'); SFX.play('lethal'); return; }
+  if (st.status === 'won') { board.classList.add('safe'); SFX.play('best'); return; }
+  if (hurt) { board.classList.add('hit'); SFX.play('bad'); }
+  else if (t.kill) SFX.play('kill');
+  else if (t.pickup) SFX.play('pick');
+  else if (t.smash || t.attack) SFX.play(t.smash ? 'smash' : 'blip');
+  else if (t.move || t.pass || t.item) SFX.play('click');
+  if (t.kill && hurt) SFX.play('kill');
+}
+
+/* ---- End card: verdict, the stats line from the contract, the four buttons ---- */
+function killerText(events) {
+  var txt = game.result && game.result.cause ? String(game.result.cause) : '';
+  if (!txt) (events || []).forEach(function (e) { if (e && e.t === 'dead' && e.text) txt = e.text; });
+  if (!txt) { var L = Array.isArray(game.log) ? game.log : []; if (L.length) txt = L[L.length - 1].text || ''; }
+  txt = String(txt || 'out of Energy').replace(/^\s*run over on turn \d+\s*:\s*/i, '').replace(/\s*[.!]+\s*$/, '');
+  return txt.charAt(0).toLowerCase() + txt.slice(1);
+}
+function statsLine(events) {
+  var R = game.result || {}, pl = game.player || {};
+  var energy = R.energy != null ? R.energy : pl.energy, corn = R.corn != null ? R.corn : (pl.corn | 0), coins = R.coins != null ? R.coins : (pl.coins | 0), turns = R.turns != null ? R.turns : (game.turn | 0), kills = R.kills | 0;
+  if (game.status === 'won') return 'You survived ' + (playSpec.name || 'the floor') + ': ' + energy + ' Energy left, ' + corn + ' Golden Corn, ' + coins + ' coins, ' + turns + ' turns, ' + kills + ' kills.';
+  return 'Run over on turn ' + turns + ': ' + killerText(events) + '.';
+}
+function renderEnd(events) {
+  var won = game.status === 'won', fb = $('#endcard'), R = game.result || {}, pl = game.player || {};
+  fb.className = 'feedback ' + (won ? 'v-best' : 'v-lethal');
+  clear(fb);
+  append(fb, [
+    el('div', { 'class': 'fb-head' },
+      el('span', { 'class': 'fb-icon', 'aria-hidden': 'true', text: won ? '★' : '☠' }),
+      el('div', { 'class': 'fb-titles' }, el('div', { 'class': 'fb-verdict', text: won ? 'YOU SURVIVED' : 'RUN OVER' }), el('div', { 'class': 'fb-choice', text: fromLink ? 'A floor by a friend' + (playSpec.name ? ': ' + playSpec.name : '') : (playSpec.name || 'Your floor') }))),
+    el('div', { 'class': 'fb-stats' },
+      el('span', { 'class': 'chip chip-energy' }, '⚡ ', el('b', { text: (R.energy != null ? R.energy : pl.energy) + '/' + pl.maxEnergy })),
+      el('span', { 'class': 'chip chip-corn' }, '🌽 ', el('b', { text: R.corn != null ? R.corn : (pl.corn | 0) })),
+      el('span', { 'class': 'chip chip-coin' }, '🪙 ', el('b', { text: R.coins != null ? R.coins : (pl.coins | 0) })),
+      el('span', { 'class': 'chip chip-turn' }, 'Turn ', el('b', { text: R.turns != null ? R.turns : (game.turn | 0) })),
+      el('span', { 'class': 'chip chip-atk' }, '⚔ ', el('b', { text: (R.kills | 0) + ' kills' }))),
+    el('p', { 'class': 'fb-explain', text: statsLine(events) }),
+    el('div', { 'class': 'fb-actions' },
+      el('button', { 'class': 'btn btn-primary', type: 'button', id: 'btn-again', onclick: function () { SFX.play('click'); startPlay(playSpec, { quiet: true }); } }, '↻ Try again'),
+      el('button', { 'class': 'btn btn-ghost', type: 'button', onclick: editThisFloor }, '✎ Edit the floor'),
+      el('button', { 'class': 'btn btn-ghost', type: 'button', onclick: function () { copyLink(playSpec); } }, '🔗 Copy challenge link'),
+      el('a', { 'class': 'btn btn-x', href: shareUrl(playSpec, true), target: '_blank', rel: 'noopener noreferrer' }, '𝕏 Share on X')),
+    el('div', { 'class': 'keys-hint' }, el('span', {}, el('kbd', { text: 'Enter' }), ' try again'))
+  ]);
+  fb.hidden = false;
+}
+function editThisFloor() { SFX.play('click'); fromLink = false; $('#banner').hidden = true; loadSpec(playSpec || spec, { silent: true }); showMode('edit'); }
+
+/* =========================================================
+   7. Share links and X text (from the contract)
+   ========================================================= */
+function baseUrl() { return location.href.split('#')[0]; }
+function encodeSpec(s) { try { return SIM.encode(normalizeSpec(s)); } catch (e) { return null; } }
+function playUrl(s) { var enc = encodeSpec(s); return enc ? baseUrl() + '#play=' + enc : baseUrl(); }
+function copyText(txt, okMsg) {
+  function fallback() {
+    try {
+      var ta = el('textarea', { style: 'position:fixed;left:-9999px;top:0', 'aria-hidden': 'true' }); ta.value = txt; document.body.appendChild(ta); ta.select();
+      var ok = document.execCommand && document.execCommand('copy'); document.body.removeChild(ta);
+      if (ok) { toast(okMsg); SFX.play('ok'); } else toast('Clipboard is not available here. Copy the address bar after opening the link: ' + txt, 7000);
+    } catch (e) { toast('Clipboard is not available here.', 4000); }
+  }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { toast(okMsg); SFX.play('ok'); }, fallback);
+    else fallback();
+  } catch (e) { fallback(); }
+}
+function copyLink(s) {
+  var enc = encodeSpec(s);
+  if (!enc) { toast('This floor cannot be encoded yet. Fix the validation errors first.', 3500); return; }
+  copyText(baseUrl() + '#play=' + enc, 'Challenge link copied. Send it to a friend.');
+}
+function shareText(s, finished) {
+  var url = playUrl(s), st = game;
+  if (finished && fromLink && st && st.status === 'won') {
+    var R = st.result || {}, pl = st.player || {};
+    return 'I survived a Maze of Gains x @YieldFields_RH floor with ' + (R.energy != null ? R.energy : pl.energy) + ' Energy left - ' + (R.corn != null ? R.corn : (pl.corn | 0)) + ' Golden Corn in ' + (R.turns != null ? R.turns : (st.turn | 0)) + ' turns. Your turn:\n' + url + '\n\nunofficial game by @flxrnc';
+  }
+  if (finished && fromLink && st && st.status === 'dead') {
+    return 'A Maze of Gains x @YieldFields_RH floor got me on turn ' + ((st.result && st.result.turns != null) ? st.result.turns : (st.turn | 0)) + '. Can you survive it?\n' + url + '\n\nunofficial game by @flxrnc';
+  }
+  var n = s.enemies.length, m = s.traps.length, k = s.pickups.filter(function (p) { return p.type === 'golden_corn'; }).length + s.objects.filter(function (o) { return o.type === 'corn_stalk'; }).length;
+  return 'Would You Survive my floor?\n\nI built a Maze of Gains x @YieldFields_RH floor: ' + n + ' enemies, ' + m + ' traps, ' + k + ' Golden Corn. Try to survive it:\n' + url + '\n\nunofficial game by @flxrnc';
+}
+function shareUrl(s, finished) { return 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText(s, finished)); }
+
+/* =========================================================
+   8. Hash routing: #play=<encoded> opens play mode, #edit=<encoded> the editor
+   ========================================================= */
+function decodeHash() {
+  var m = /^#(play|edit)=(.+)$/.exec(location.hash || '');
+  if (!m) return null;
+  var s = null; try { s = SIM.decode(decodeURIComponent(m[2])); } catch (e) { s = null; }
+  if (!s) { try { s = SIM.decode(m[2]); } catch (e2) { s = null; } }
+  return { mode: m[1], spec: s };
+}
+function openBanner(name) {
+  var b = clear($('#banner'));
+  append(b, [el('span', {}, 'Floor by a friend: ', el('b', { text: name || 'untitled floor' }), '. Survive it.'),
+    el('a', { href: '#edit=' + (encodeSpec(playSpec) || ''), text: 'Open in editor', onclick: function (ev) { ev.preventDefault(); editThisFloor(); } })]);
+  b.hidden = false;
+}
+function loadFromHash() {
+  var h = decodeHash(), s;
+  if (!h) { fromLink = false; $('#banner').hidden = true; loadSpec(safeSample() || blankSpec(14, 9), { silent: true }); showMode('edit'); return; }
+  if (!h.spec) { toast('That link is not a valid floor. Loading a sample instead.', 4500); fromLink = false; $('#banner').hidden = true; loadSpec(safeSample() || blankSpec(14, 9), { silent: true }); showMode('edit'); return; }
+  s = normalizeSpec(h.spec);
+  var v; try { v = SIM.validate(s); } catch (e) { v = { ok: false }; }
+  if (h.mode === 'play' && v && v.ok) { fromLink = true; loadSpec(s, { silent: true }); startPlay(s, { quiet: true }); openBanner(s.name); return; }
+  if (h.mode === 'play') toast('That floor is not valid, so it opens in the editor.', 4000);
+  fromLink = false; $('#banner').hidden = true; loadSpec(s, { silent: true }); showMode('edit');
+}
+
+/* =========================================================
+   9. Legend modal, toast, menu, particles, keyboard, wiring
+   ========================================================= */
+var toastTimer = null;
+function toast(msg, ms) {
+  var t = $('#toast'); if (!t) return;
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, ms || 4200);
+}
+function sampleTile(entities, tileKind) {
+  var b = el('div', { 'class': 'board sample', 'aria-hidden': 'true' });
+  var key = resolveTileKey(tileKind === 'fog' ? 'tile_fog' : 'tile_floor_a');
+  var t = el('div', { 'class': 'tile ' + (tileKind === 'fog' ? 'fog r-fog' : 'floor r-floor') }), bg = el('i', { 'class': 'tbg' + (key ? '' : ' nobg') });
+  if (key) bg.style.backgroundImage = bgVar(b, key);
+  t.appendChild(bg);
+  (Array.isArray(entities) ? entities : [entities]).forEach(function (n) { t.appendChild(n); });
+  b.appendChild(t);
+  return b;
+}
+function legendRow(sample, name, desc) { return el('div', { 'class': 'legend-row' }, sample, el('div', {}, el('b', { text: name }), el('span', { text: desc }))); }
+function withCues(e) { return [enemyEl(e)].concat(enemyCueEls(e)); }
+var legendBuilt = false;
+function buildLegend() {
+  if (legendBuilt) return; legendBuilt = true;
+  var types = keysOf(R_EN, ruleOn), first = types[0] || 'enemy';
+  var soldier = types.filter(function (k) { return (R_EN[k] || {}).kind === 'aoe' || /skelesoldier/.test(k); })[0] || first;
+  var key = clear($('#legend-key'));
+  append(key, [
+    legendRow(sampleTile(playerEl()), 'You', 'Energy is your HP and your move budget. Steps cost 1, attacks cost 0. Reach the stairs to clear the floor.'),
+    legendRow(sampleTile(withCues({ type: first, x: 0, y: 0, hp: 30, maxHp: 70, phase: 'charge', turns: 1, target: { x: 0, y: 1 } })), 'Strike incoming', 'The orange "!" above an enemy: it strikes next turn. The bar above it is its HP.'),
+    legendRow(sampleTile(withCues({ type: first, x: 0, y: 0, hp: 35, maxHp: 35, phase: 'charge', turns: 2, target: { x: 1, y: 0 } })), 'Strike direction', 'The pink triangle sits on the edge of the attacker\'s tile, facing where it will strike.'),
+    legendRow(sampleTile(withCues({ type: soldier, x: 0, y: 0, hp: 70, maxHp: 70, phase: 'charge', turns: 1, target: { x: 0, y: -1 } })), 'Cross strike', 'Triangles on all four edges: the strike covers the target tile and the four tiles around the attacker.'),
+    legendRow(sampleTile(cueSprite('cue_target', 'cue-reveal shown')), 'Danger tile', 'Red tiles are covered by a wind-up right now. Do not end your press on one.'),
+    legendRow(sampleTile(cueSprite('cue_explode', 'cue-explode')), 'Explosion', 'The 8 tiles around an Exploding mushroom or a Bomb on the turn before it blows.'),
+    legendRow(sampleTile(pickupEl({ type: 'golden_corn', frozen: 1 })), 'Frozen pickup', 'Blizzard: new drops are ice-encased. Bump one to crack the ice: 0 Energy, takes the turn.'),
+    legendRow(sampleTile(objectEl({ type: 'stairs' })), objName('stairs'), 'Step on it to finish the floor.'),
+    legendRow(sampleTile(trapEl({ type: 'spike' })), trapName('spike'), 'Rise every other turn. Do not stand on them when they do.'),
+    legendRow(sampleTile(trapEl({ type: 'arrow', dir: 'right' })), trapName('arrow'), 'Fires along its line every ' + ((R_TR.arrow || {}).every || 3) + ' turns, until the arrow hits a wall.')
+  ]);
+  var list = clear($('#legend-list'));
+  if (!types.length) list.appendChild(el('div', { 'class': 'legend-row' }, el('div', {}, el('b', { text: 'No enemy data' }))));
+  types.forEach(function (type) { list.appendChild(legendRow(sampleTile(enemyEl({ type: type, hp: 0, maxHp: 0, phase: 'idle' })), enemyName(type), enemyShort(type))); });
+}
+function openLegend() { buildLegend(); $('#legend-modal').hidden = false; $('#btn-legend-close').focus(); }
+function closeLegend() { $('#legend-modal').hidden = true; }
+function openMenu() {
+  var m = clear($('#sample-menu'));
+  sampleNames().forEach(function (name) { m.appendChild(el('button', { type: 'button', text: pretty(name), onclick: function () { closeMenu(); var s = safeSample(name); if (s) loadSpec(s); else toast('That sample is not available.', 2500); } })); });
+  m.hidden = false;
+}
+function closeMenu() { var m = $('#sample-menu'); if (m) m.hidden = true; }
+function spawnParticles() {
+  if (REDUCED_MOTION) return;
+  var wrap = $('#particles'), n = Math.min(26, Math.max(10, Math.round(window.innerWidth / 55))), colors = ['#FFC42D', '#FFC42D', '#ffe08a', '#a78bfa', '#3fd9ff'], i, s;
+  for (i = 0; i < n; i++) {
+    s = document.createElement('i');
+    s.style.cssText = '--x:' + (Math.random() * 100).toFixed(1) + '%;--s:' + (3 + Math.random() * 5).toFixed(1) + 'px;--d:' + (16 + Math.random() * 18).toFixed(1) + 's;--delay:' + (-Math.random() * 34).toFixed(1) + 's;--o:' + (.22 + Math.random() * .45).toFixed(2) + ';--pc:' + colors[i % colors.length];
+    wrap.appendChild(s);
+  }
+}
+document.addEventListener('keydown', function (e) {
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  var modalOpen = !$('#legend-modal').hidden;
+  var map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
+  if (e.key === 'Escape') {
+    if (modalOpen) { closeLegend(); e.preventDefault(); return; }
+    if (dirPick) { closeDirPick(); e.preventDefault(); return; }
+    if (!$('#sample-menu').hidden) { closeMenu(); return; }
+    if (mode === 'edit' && tool === 'erase') { setTool('paint'); }
+    return;
+  }
+  if (modalOpen) return;
+  var tag = (e.target && e.target.tagName) || '';
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) return;
+  var onControl = /^(BUTTON|A)$/.test(tag);
+  var isEnter = e.key === 'Enter', isSpace = e.key === ' ' || e.key === 'Spacebar';
+  if (dirPick) { if (map[e.key] && /^Arrow/.test(e.key)) { dirPick.__pick(map[e.key]); e.preventDefault(); } return; }
+  if (onControl && (isEnter || isSpace)) return;
+  if (mode === 'edit') { if (e.key === 'e' || e.key === 'E') { setTool(tool === 'erase' ? 'paint' : 'erase'); } return; }
+  if (mode !== 'play' || !game) return;
+  if (game.status !== 'playing') { if (isEnter) { var b = $('#btn-again'); if (b) b.click(); e.preventDefault(); } return; }
+  if (isSpace) { press('pass'); e.preventDefault(); return; }
+  if (e.key === 'i' || e.key === 'I') { pressItem(); e.preventDefault(); return; }
+  if (map[e.key]) { press(map[e.key]); e.preventDefault(); }
+});
+function renderSoundBtn() {
+  var b = $('#btn-sound'); if (!b) return;
+  var on = SFX.isOn();
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.innerHTML = (on ? '🔊 <span id="lbl-sound">Sound</span>' : '🔇 <span id="lbl-sound">Muted</span>');
+}
+$('#btn-sound').addEventListener('click', function () { SFX.set(!SFX.isOn()); renderSoundBtn(); if (SFX.isOn()) SFX.play('blip'); });
+renderSoundBtn();
+$('#btn-legend').addEventListener('click', openLegend);
+$('#btn-legend-2').addEventListener('click', openLegend);
+$('#btn-legend-close').addEventListener('click', closeLegend);
+$('#legend-modal').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeLegend(); });
+$('#tool-paint').addEventListener('click', function () { setTool('paint'); SFX.play('click'); });
+$('#tool-erase').addEventListener('click', function () { setTool('erase'); SFX.play('click'); });
+$('#btn-clear').addEventListener('click', function () { SFX.play('click'); clearFloor(); });
+$('#btn-sample').addEventListener('click', function (ev) { ev.stopPropagation(); if ($('#sample-menu').hidden) openMenu(); else closeMenu(); });
+document.addEventListener('click', function (ev) { if (!ev.target.closest || !ev.target.closest('.menu-wrap')) closeMenu(); });
+$('#btn-copy-edit').addEventListener('click', function () { if (!runValidate()) { toast('Fix the floor first: see the list under the board.', 3000); return; } copyLink(spec); });
+$('#btn-play').addEventListener('click', function () { if (!runValidate()) { toast('Fix the floor first: see the list under the board.', 3000); return; } fromLink = false; $('#banner').hidden = true; startPlay(spec); });
+$('#floor-name').addEventListener('input', function () { spec.name = String(this.value || '').slice(0, 40); });
+$('#floor-name').addEventListener('change', function () { runValidate(); });
+wireInspect($('#play-board'));
+window.addEventListener('hashchange', function () { loadFromHash(); });
+
+/* =========================================================
+   10. Init
+   ========================================================= */
+function init() {
+  clear($('#credit-foot')).appendChild(creditLink('credit-foot'));
+  spawnParticles();
+  if (!SIM || typeof SIM.newGame !== 'function') {
+    clear($('#edit-board')).appendChild(el('div', { 'class': 'error-box', text: 'builder/sim.js did not load, so there is no simulator. Check that it defines window.MOG_SIM.' }));
+    $('#btn-play').disabled = true; $('#btn-copy-edit').disabled = true;
+    return;
+  }
+  loadFromHash();
+}
+init();
+})();
+</script>
+</body>
+</html>

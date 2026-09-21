@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build or Survive</title>
+<meta name="description" content="Two Maze of Gains games. Survive 10 real recorded positions, or build your own floor and dare your friends to survive it.">
+<meta name="theme-color" content="#0f0c2a">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Build or Survive - Maze of Gains">
+<meta property="og:url" content="https://buildorsurvive.xyz/">
+<meta property="og:description" content="Survive 10 real Maze of Gains positions, or build your own floor and dare your friends to survive it.">
+<meta property="og:image" content="https://buildorsurvive.xyz/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Build or Survive - Maze of Gains">
+<meta name="twitter:description" content="Survive 10 real Maze of Gains positions, or build your own floor and dare your friends to survive it.">
+<meta name="twitter:image" content="https://buildorsurvive.xyz/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.92em' font-size='88'%3E%F0%9F%8C%BD%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   1. Tokens & base
+   ========================================================= */
+:root{
+  --bg0:#07061a; --card:#1b1740; --card2:#241d58; --line:#3a2f7d; --line2:#5343a8;
+  --corn:#FFC42D; --corn2:#ffe08a; --corn3:#b07a00;
+  --coral:#ff4f6d; --mint:#43e8a4; --cyan:#3fd9ff; --orange:#ff9b3d; --violet:#a78bfa;
+  --text:#f5f2ff; --muted:#bdb7dc; --dim:#8a83b3;
+  --font-pixel:'Press Start 2P',ui-monospace,'Courier New',monospace;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --radius:20px; --gutter:20px; --tile:32px; --topbar:64px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--text);font:400 16px/1.5 var(--font-body);background:var(--bg0);overflow-x:hidden}
+[hidden]{display:none!important}
+button{font-family:inherit}
+b,strong{font-weight:900}
+kbd{font:800 11px/1 var(--font-body);padding:3px 6px;border-radius:6px;background:#0d0b22;border:1px solid var(--line2);color:var(--corn2)}
+::selection{background:var(--corn);color:#1a1440}
+
+/* Background: gradient wash + faint grid + drifting corn kernels */
+body::before{content:'';position:fixed;inset:0;z-index:-3;
+  background:radial-gradient(1100px 560px at 50% -140px,rgba(103,76,232,.55),transparent 65%),
+             radial-gradient(700px 460px at 100% 100%,rgba(255,196,45,.12),transparent 60%),
+             radial-gradient(600px 400px at 0% 80%,rgba(63,217,255,.08),transparent 60%),
+             linear-gradient(180deg,#140f36 0%,#0c0924 45%,#07061a 100%)}
+.bg-grid{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:40px 40px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 15%,#000 15%,transparent 72%);mask-image:radial-gradient(ellipse at 50% 15%,#000 15%,transparent 72%)}
+.particles{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.particles i{position:absolute;left:var(--x);bottom:-30px;width:var(--s);height:calc(var(--s)*1.35);border-radius:35%;
+  background:var(--pc,var(--corn));opacity:var(--o,.5);box-shadow:0 0 10px var(--pc,var(--corn));
+  animation:rise var(--d,22s) linear var(--delay,0s) infinite;will-change:transform}
+@keyframes rise{0%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(28px,-58vh,0) rotate(200deg)}100%{transform:translate3d(-20px,-118vh,0) rotate(400deg)}}
+
+/* =========================================================
+   2. Top bar, layout, buttons
+   ========================================================= */
+.topbar{position:sticky;top:0;z-index:20;height:var(--topbar);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 var(--gutter);
+  background:rgba(9,7,28,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07)}
+.topbar-inner{width:100%;max-width:1160px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font:15px/1 var(--font-pixel);color:var(--corn);background:none;border:0;cursor:pointer;padding:6px 0;text-shadow:0 2px 0 #5c3d00,0 0 14px rgba(255,196,45,.35);letter-spacing:.5px}
+.brand .corn{font-size:22px;filter:drop-shadow(0 0 6px rgba(255,196,45,.6))}
+.brand span.txt{display:none}
+@media(min-width:600px){.brand span.txt{display:inline}}
+.brand-wrap{grid-column:2;justify-self:center;display:flex;align-items:center;gap:16px;min-width:0}
+.credit{display:inline-flex;align-items:center;gap:6px;font:800 12.5px var(--font-body);color:var(--muted);text-decoration:none;white-space:nowrap;border-bottom:1.5px solid transparent;transition:color .2s,border-color .2s}
+.credit .x-logo{font-size:14px;color:#fff;font-weight:900}
+.credit:hover,.credit:focus-visible{color:var(--corn2);border-bottom-color:var(--corn2)}
+footer .credit{font-size:13.5px}
+.topbar-actions{grid-column:3;justify-self:end;display:flex;gap:8px}
+.icon-btn{min-width:44px;min-height:44px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.05);color:var(--text);font:800 13px var(--font-body);padding:0 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color .2s,color .2s,transform .08s}
+.icon-btn:hover{border-color:var(--corn);color:var(--corn2)}
+a.icon-btn{text-decoration:none}
+.icon-btn:active{transform:translateY(1px)}
+.icon-btn.restart{display:none}
+body[data-screen="quiz"] .icon-btn.restart,body[data-screen="result"] .icon-btn.restart{display:inline-flex}
+
+main{max-width:1160px;margin:0 auto;padding:24px var(--gutter) 60px}
+.screen{display:none}
+.screen.active{display:block;animation:screenIn .4s cubic-bezier(.2,.8,.2,1)}
+@keyframes screenIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:12px 24px;border-radius:14px;border:3px solid transparent;
+  font:900 16px/1.2 var(--font-body);color:var(--text);cursor:pointer;text-decoration:none;transition:transform .08s,box-shadow .2s,filter .2s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:translateY(3px)}
+.btn-primary{background:linear-gradient(180deg,#ffdb6e 0%,var(--corn) 55%,#f2ac00 100%);color:#1a1440;border-color:#fff1bf;
+  box-shadow:0 6px 0 #a87400,0 12px 30px rgba(255,196,45,.35)}
+.btn-primary:hover{filter:brightness(1.06);box-shadow:0 6px 0 #a87400,0 14px 40px rgba(255,196,45,.5)}
+.btn-primary:active{box-shadow:0 2px 0 #a87400,0 6px 16px rgba(255,196,45,.35)}
+.btn-ghost{background:rgba(255,255,255,.06);border-color:var(--line2)}
+.btn-ghost:hover{border-color:var(--corn);color:var(--corn2)}
+.btn-x{background:#000;border-color:#3a3a4a;color:#fff}
+.btn-x:hover{border-color:#fff}
+.btn-xl{min-height:64px;padding:16px 34px;font:14px/1.4 var(--font-pixel);letter-spacing:.5px}
+.btn-lg{min-height:58px;padding:14px 28px;font-size:17px}
+.btn:focus-visible,.opt:focus-visible,.icon-btn:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+
+/* =========================================================
+   3. Hero: two modes side by side - the quiz (left) and the Maze Builder (right)
+   ========================================================= */
+.hero{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;align-items:stretch;padding:4px 0 24px}
+.mode{position:relative;min-width:0;display:flex;flex-direction:column;padding:22px 26px 20px;border-radius:26px;border:3px solid var(--line);
+  background:linear-gradient(180deg,var(--card2),var(--card));box-shadow:0 24px 60px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .25s,box-shadow .25s}
+@supports(grid-template-rows:subgrid){.mode{display:grid;grid-template-rows:subgrid;grid-row:span 7;row-gap:0;align-content:start}} /* the seven rows line up across both panels */
+.mode>*{min-width:0}
+.mode-build{cursor:pointer}
+.mode-build:hover,.mode-build:focus-within{border-color:var(--corn);box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 0 6px rgba(255,196,45,.1),0 0 50px rgba(255,196,45,.16),inset 0 1px 0 rgba(255,255,255,.06)}
+.kicker{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:2px solid var(--line2);background:rgba(120,90,255,.16);
+  font:800 12px/1 var(--font-body);letter-spacing:1px;text-transform:uppercase;color:var(--corn2)}
+.mode .kicker{justify-self:start;align-self:start;margin:0}
+.kicker-new{border-color:rgba(67,232,164,.6);background:rgba(67,232,164,.12);color:var(--mint)}
+.title{font:clamp(26px,3.6vw,52px)/1.28 var(--font-pixel);color:var(--corn);margin:22px 0 18px;
+  text-shadow:0 4px 0 #7a4f00,0 8px 0 #3a2600,0 0 34px rgba(255,196,45,.45)}
+.mode .title{font-size:clamp(28px,3vw,38px);line-height:1.25;margin:14px 0 8px}
+.title .brk{display:block}
+.tagline{font-size:clamp(18px,1.6vw,23px);font-weight:800;color:#fff;margin:0 0 18px;max-width:600px}
+.mode .tagline{font-size:16.5px;line-height:1.45;margin:0 0 14px;max-width:none}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.mode .hero-actions{margin:0 0 14px}
+.note{margin-top:18px;color:var(--dim);font-size:14px;font-weight:800;letter-spacing:.3px}
+.scoring-line{margin-top:10px;font-size:14px;color:var(--muted);font-weight:700}
+.scoring-line b{color:var(--text)}
+.mode-meta{margin:0 0 20px}
+.mode-meta .note{margin:0}
+.mode-meta .scoring-line{margin-top:6px}
+.hero-board{position:relative;width:100%;max-width:640px;padding:16px;border-radius:24px;border:3px solid var(--line2);
+  background:linear-gradient(180deg,#261e60,#171238);box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 8px rgba(120,90,255,.08),0 0 60px rgba(120,90,255,.18);
+  animation:float 7s ease-in-out infinite;cursor:pointer;transition:box-shadow .3s}
+.hero-board:hover,.mode-build:hover .hero-board{box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 8px rgba(255,196,45,.12),0 0 60px rgba(255,196,45,.25)}
+.hero-board:focus-visible{outline:3px solid var(--cyan);outline-offset:4px}
+.hero-board .board-wrap{margin:0 auto}
+.mode .hero-board{display:block;justify-self:center;align-self:start;width:fit-content;max-width:100%;margin:0;padding:12px;border-radius:20px;color:inherit;text-decoration:none}
+.mode-build .hero-board{animation-delay:-3.5s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.live-tag{position:absolute;top:-15px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;
+  background:#0d0b22;border:2px solid var(--coral);font:900 11px/1 var(--font-body);letter-spacing:1px;color:#fff;white-space:nowrap;z-index:2}
+.live-tag::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--coral);box-shadow:0 0 8px var(--coral);animation:blink 1s steps(2) infinite}
+.live-tag.tag-build{border-color:var(--mint)}
+.live-tag.tag-build::before{background:var(--mint);box-shadow:0 0 8px var(--mint);animation:none}
+@keyframes blink{to{opacity:.2}}
+.hero-caption{text-align:center;color:var(--dim);font-size:13px;font-weight:700}
+.hero-caption b{color:var(--muted)}
+.mode .hero-caption{margin-top:12px;align-self:start}
+@media(max-width:899px){
+  .hero{grid-template-columns:minmax(0,1fr);row-gap:24px}
+}
+
+/* =========================================================
+   4. Quiz
+   ========================================================= */
+.progress{display:flex;align-items:center;gap:14px;margin:0 0 16px}
+.pbar{flex:1;height:16px;border-radius:999px;background:#100d2a;border:2px solid var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--corn3),var(--corn),var(--corn2));box-shadow:0 0 14px rgba(255,196,45,.6);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.plabel{font:12px var(--font-pixel);color:var(--corn2);white-space:nowrap}
+.streak{font:800 12px var(--font-body);color:#ffb347;white-space:nowrap;background:rgba(255,155,61,.12);border:1px solid rgba(255,155,61,.45);border-radius:999px;padding:4px 10px;animation:popIn .3s ease}
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:3px solid var(--line);border-radius:var(--radius);
+  box-shadow:0 24px 60px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);padding:22px;scroll-margin-top:calc(var(--topbar) + 12px)}
+.q-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px 20px;margin-bottom:14px}
+.q-head-main{flex:1 1 420px;min-width:0}
+.q-num{font:10px var(--font-pixel);color:var(--violet);letter-spacing:1px}
+.q-title{margin:8px 0 6px;font-size:clamp(22px,2.4vw,30px);font-weight:900;line-height:1.2}
+.q-hook{margin:0;color:var(--muted);font-weight:600;font-size:16px;max-width:760px}
+.q-mech-long{margin:8px 0 0;font-size:14px;color:var(--muted);font-weight:600}
+.q-mech-long b{color:var(--violet)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.14);
+  font-size:13.5px;font-weight:800;white-space:nowrap;line-height:1.2}
+.chip b{font-weight:900}
+.chip-mech{border-color:var(--violet);color:#dfd4ff;background:rgba(167,139,250,.14);align-self:flex-start}
+.stats{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 18px}
+.stats-lbl{font:9px var(--font-pixel);color:var(--dim);letter-spacing:.5px;margin-right:4px}
+.chip-energy{border-color:rgba(63,217,255,.5);color:#d8f7ff}
+.chip-atk{border-color:rgba(255,79,109,.5);color:#ffd9e0}
+.chip-item{border-color:rgba(167,139,250,.6);color:#e6dcff}
+.chip-muted{color:var(--dim);border-style:dashed}
+
+/* Desktop: board left (sticky), controls + feedback right */
+.q-grid{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr);gap:26px;align-items:start}
+.q-board-col{min-width:0}
+.q-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+@media(min-width:1080px){.q-board-col{position:sticky;top:calc(var(--topbar) + 14px)}}
+@media(max-width:1079px){.q-grid{grid-template-columns:minmax(0,1fr)}}
+
+.board-wrap{--frame-pad:10px;margin:0 auto;padding:var(--frame-pad);border-radius:18px;border:3px solid var(--line2);background:#0c0a22;
+  box-shadow:inset 0 0 40px rgba(0,0,0,.6),0 0 0 5px rgba(120,90,255,.08),0 16px 40px rgba(0,0,0,.4);display:flex;justify-content:center;overflow:hidden}
+@media(max-width:599px){:root{--gutter:12px}.card{padding:12px}.board-wrap{--frame-pad:4px;border-radius:12px}}
+.board-caption{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;margin:10px 4px 0;font-size:12.5px;color:var(--dim);font-weight:700}
+.board-caption span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+.swatch.tg{background:rgba(255,0,60,.35);box-shadow:inset 0 0 0 1px rgba(255,0,60,.8)}
+.swatch.pre{width:auto;height:auto;background:none;border-radius:0;color:#ff8c09;font-weight:900;font-size:14px;line-height:1;-webkit-text-stroke:.5px #000}
+.swatch.dir{width:0;height:0;border-radius:0;background:none;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid #f51d6a}
+
+/* ---- Board & tiles: the game's tileset (assets/tiles.md), auto-tiled; --u = one game pixel ---- */
+.board{--u:calc(var(--tile)/32);display:grid;grid-auto-rows:var(--tile);gap:0;position:relative;border-radius:6px;overflow:hidden;background:#000}
+.tile{position:relative;width:var(--tile);height:var(--tile)}
+.tbg,.tsh{position:absolute;inset:0;z-index:0;pointer-events:none}
+.tbg{background-position:center;background-size:100% 100%;background-repeat:no-repeat;image-rendering:pixelated}
+.tile.chk .tbg{filter:brightness(.88)}                      /* the game's 12% checker on odd floor-variant cells */
+.tsh{background-repeat:no-repeat;background-size:100% 100%}  /* wall shadow on floor / warm rim on walls */
+/* flat-colour fallbacks when a tile key is missing */
+.r-floor .tbg.nobg{background:#2aa79f}.r-floor.odd .tbg.nobg{background:#25938c}
+.r-face .tbg.nobg{background:#55667f;box-shadow:inset 0 -3px 0 #3a4658,inset 0 0 0 1px #2b3547}
+.r-top .tbg.nobg{background:#0b3f57}
+.r-bottom .tbg.nobg,.r-side .tbg.nobg,.r-corner .tbg.nobg{background:#0e4a63;box-shadow:inset 0 0 0 1px #4c3c84}
+.r-fog .tbg.nobg{background:#000}
+.ent{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.sw{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.cue{pointer-events:none}
+.cue-reveal,.cue-explode{z-index:1}
+.trap{z-index:2}.torch{z-index:3;pointer-events:none}.obj{z-index:3}.pickup{z-index:4}.enemy{z-index:5}.player{z-index:6}
+.cue-pre,.cue-dir,.cue-aoe{z-index:9}
+.spr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;pointer-events:none;max-width:none;user-select:none}
+.spr.anchor-bottom{top:auto;bottom:0;transform:translateX(-50%)}
+.spr-icon{image-rendering:pixelated;vertical-align:middle;object-fit:contain;flex:0 0 auto}
+/* torches: frame 0/1 flicker, centred on the lower half of a brick face, warm additive glow ~3 tiles wide */
+.torch .spr{top:75%}
+.torch .spr.f1{animation:flick .4s steps(1) infinite}
+@keyframes flick{0%,49%{opacity:0}50%,100%{opacity:1}}
+.torch .glow{position:absolute;left:50%;top:75%;width:calc(var(--tile)*3);height:calc(var(--tile)*3);transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,176,92,.30),rgba(255,176,92,.105) 50%,rgba(255,176,92,0) 70%);mix-blend-mode:screen;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:translate(-50%,-50%) scale(.94)}50%{transform:translate(-50%,-50%) scale(1.06)}}
+.torch.fb .flame{position:absolute;left:50%;top:75%;width:calc(var(--u)*6px);height:calc(var(--u)*10px);transform:translate(-50%,-50%);border-radius:50% 50% 40% 40%;background:#ffb04d;box-shadow:0 0 6px #ff8c1a}
+/* enemy HUD, as the game draws it: 26x7 HP bar 7px above the tile, shield badge top-right, tinted sprite */
+.hpbar{position:absolute;left:50%;top:calc(var(--u)*-7px);width:calc(var(--u)*26px);height:calc(var(--u)*7px);transform:translateX(-50%);background:#000;border-radius:calc(var(--u)*2px);z-index:3;pointer-events:none}
+.hpbar .track{position:absolute;left:calc(var(--u)*1px);top:calc(var(--u)*1px);width:calc(var(--u)*24px);height:calc(var(--u)*5px);background:rgb(64,32,40);border-radius:calc(var(--u)*1px);overflow:hidden}
+.hpbar .fill{position:absolute;left:0;top:0;height:100%;background:#ff4d6d;border-radius:calc(var(--u)*1px)}
+.hpbar .tick{position:absolute;top:0;width:calc(var(--u)*1px);height:100%;background:#000}
+.shield{position:absolute;right:calc(var(--u)*-1px);top:calc(var(--u)*-8px);display:flex;align-items:center;gap:1px;z-index:3;pointer-events:none}
+.shield svg{width:calc(var(--u)*11px);height:calc(var(--u)*13px);display:block}
+.shield b{font:900 max(8px,calc(var(--u)*8px))/1 ui-monospace,monospace;color:#eaffff;text-shadow:0 0 2px #06323f,0 0 2px #06323f,0 0 1px #06323f}
+.enemy.shielded .sw img{filter:sepia(1) hue-rotate(160deg) saturate(2.2) brightness(1.15)}
+.enemy.inv .sw{opacity:.9}
+.ice-spr{position:absolute;inset:0;z-index:2;pointer-events:none}
+/* glyph fallbacks when a sprite key is missing */
+.glyph{font-size:calc(var(--tile)*.6);line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+.obj svg,.trap svg{width:calc(var(--tile)*.86);height:calc(var(--tile)*.86);display:block}
+.o-stalk::before{content:'';position:absolute;left:22%;right:22%;bottom:6%;height:30%;border-radius:20% 20% 40% 40%;background:#6f4520}
+.fb-badge{width:calc(var(--tile)*.76);height:calc(var(--tile)*.76);border-radius:50%;display:grid;place-items:center;font-size:calc(var(--tile)*.42);line-height:1;background:#14112e;border:2px solid var(--c,#e8e4ff)}
+.player .fb-badge{background:#ffd75e;border-color:#fff6d6}
+.player .fb-badge svg{width:82%;height:82%;display:block}
+.orb{border-radius:50%;background:#7fe8ff;box-shadow:0 0 0 2px #1d6f86}
+.orb-s{width:calc(var(--tile)*.4);height:calc(var(--tile)*.4)}.orb-l{width:calc(var(--tile)*.6);height:calc(var(--tile)*.6)}.orb-m{width:calc(var(--tile)*.4);height:calc(var(--tile)*.4);background:#c9c9d9;box-shadow:0 0 0 2px #55556a}
+.pk{font-size:calc(var(--tile)*.5)}
+.ice{position:absolute;inset:8%;border-radius:18%;background:rgba(160,220,255,.45);border:2px solid rgba(215,242,255,.95);z-index:2;pointer-events:none}
+/* Cues, drawn at the ATTACKER's tile like the game: "!" above (last charge turn), direction triangle on the edge, cross composite, explosion floor cue */
+.cue-pre .spr{top:calc(50% - var(--u)*30px);opacity:.8}
+.cue-pre.fb::before{content:'!';position:absolute;left:50%;top:calc(50% - var(--u)*30px);transform:translate(-50%,-50%);font:900 calc(var(--u)*16px)/1 var(--font-body);color:#ff8c09;-webkit-text-stroke:1px #000;opacity:.8}
+.cue-dir.fb::before{content:'';position:absolute;left:50%;top:0;transform:translateX(-50%);border:calc(var(--u)*5px) solid transparent;border-top:0;border-bottom-color:#f51d6a}
+.cue-dir.fb.d-down::before{top:auto;bottom:0;border-bottom:0;border-top:calc(var(--u)*5px) solid #f51d6a}
+.cue-dir.fb.d-left::before{left:0;top:50%;transform:translateY(-50%);border:calc(var(--u)*5px) solid transparent;border-left:0;border-right-color:#f51d6a}
+.cue-dir.fb.d-right::before{left:auto;right:0;top:50%;transform:translateY(-50%);border:calc(var(--u)*5px) solid transparent;border-right:0;border-left-color:#f51d6a}
+.cue-aoe.fb{box-shadow:inset 0 0 0 2px #f51d6a}
+.cue-reveal.fb,.cue-explode.fb{background:rgba(255,0,60,.2);box-shadow:inset 0 0 0 1px rgba(255,0,60,.5);border-radius:3px}
+.cue-reveal{opacity:0;transition:opacity .35s}
+.board.revealed .cue-reveal,.cue-reveal.shown{opacity:.6}     /* our one addition: danger tiles shown after the answer */
+/* Outcome animation on the player */
+.player{transition:transform .38s cubic-bezier(.2,.8,.2,1)}
+.player.moved{transform:translate(calc(var(--mx,0)*var(--tile)),calc(var(--my,0)*var(--tile)))}
+.player.lunge{animation:lunge .45s ease}
+@keyframes lunge{0%,100%{transform:none}45%{transform:translate(calc(var(--mx,0)*var(--tile)*.38),calc(var(--my,0)*var(--tile)*.38)) scale(1.08)}}
+.player.bob{animation:bobY .5s ease}
+@keyframes bobY{0%,100%{transform:none}50%{transform:translateY(-15%)}}
+.player::after{content:'';position:absolute;inset:0;border-radius:4px;pointer-events:none;background:transparent}
+.board.lethal .player::after{animation:flashRed .45s ease 3}
+.board.hit .player::after{animation:flashOrange .45s ease 2}
+.board.safe .player::after{animation:flashGreen .7s ease 1}
+.board.lethal .player .sw{animation:shake .5s cubic-bezier(.36,.07,.19,.97) 2,dim .5s ease 3}
+@keyframes flashRed{0%,100%{background:transparent}50%{background:rgba(255,79,109,.55)}}
+@keyframes flashOrange{0%,100%{background:transparent}50%{background:rgba(255,155,61,.5)}}
+@keyframes flashGreen{0%,100%{background:transparent}40%{background:rgba(67,232,164,.45)}}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(3px)}30%,50%,70%{transform:translateX(-5px)}40%,60%{transform:translateX(5px)}}
+@keyframes dim{0%,100%{filter:none}50%{filter:brightness(1.7) saturate(0)}}
+
+/* ---- On-board controls: a thin outline + small corner glyph on each reachable tile (word = tooltip) ---- */
+.act{position:absolute;inset:0;width:100%;height:100%;z-index:8;margin:0;padding:0;background:transparent;border:0;border-radius:3px;cursor:pointer;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.32);transition:background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.act:hover,.act.hl,.act:focus-visible{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 2px rgba(255,255,255,.92);outline:none}
+.act-glyph{position:absolute;top:3px;left:5px;font-size:calc(var(--tile)*.22);line-height:1;color:rgba(255,255,255,.78);text-shadow:0 1px 2px rgba(0,0,0,.9);pointer-events:none}
+.act-attack .act-glyph{color:rgba(255,120,140,.95)}
+.act-break .act-glyph,.act-pickup .act-glyph{color:rgba(255,215,90,.95)}
+.act-pass{box-shadow:none}
+.act-pass .act-glyph{top:auto;bottom:3px;left:auto;right:5px;font-size:calc(var(--tile)*.2)}
+.act-pass:hover,.act-pass.hl,.act-pass:focus-visible{box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
+.board.answered .act{pointer-events:none}
+.board.answered .act:not(.chosen):not(.is-answer){opacity:0}
+.act.chosen{--vc:var(--corn);box-shadow:inset 0 0 0 3px var(--vc)!important;background:transparent!important}
+.act.chosen .act-glyph{color:var(--vc)}
+.act.chosen[data-verdict="best"]{--vc:var(--mint)}.act.chosen[data-verdict="ok"]{--vc:var(--corn)}.act.chosen[data-verdict="bad"]{--vc:var(--orange)}.act.chosen[data-verdict="lethal"]{--vc:var(--coral)}
+.act.is-answer{box-shadow:inset 0 0 0 3px var(--mint)!important;background:transparent!important}
+.act.is-answer .act-glyph{color:var(--mint)}
+
+/* ---- The move list: the primary readable control ---- */
+.side-title{display:flex;align-items:center;justify-content:space-between;gap:10px;font:11px var(--font-pixel);color:var(--corn2);margin:2px 2px 0}
+.side-title small{font:700 12px var(--font-body);color:var(--dim)}
+.side-help{margin:-4px 2px 0;font-size:13px;color:var(--muted);font-weight:600;line-height:1.4}
+.opt-list{display:flex;flex-direction:column;gap:10px}
+.opt{position:relative;min-height:58px;width:100%;border-radius:14px;border:2px solid var(--line2);background:#241d58;color:var(--text);padding:10px 14px;
+  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:14px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s,transform .08s;-webkit-tap-highlight-color:transparent}
+@media(hover:hover){.opt:hover:not(:disabled),.opt.hl:not(:disabled){border-color:var(--corn);background:#2d2570}}
+.opt:active:not(:disabled){transform:translateY(2px)}
+.opt:disabled{cursor:not-allowed;opacity:.45;background:#17142f}
+.opt:disabled .opt-arrow{color:var(--dim)}
+.opt-arrow{font-size:22px;line-height:1;color:var(--cyan);width:26px;text-align:center;flex:0 0 auto}
+.opt[data-kind="attack"] .opt-arrow{color:var(--coral)}
+.opt[data-kind="pass"] .opt-arrow{color:var(--muted)}
+.opt[data-kind="item"] .opt-arrow{color:var(--violet)}
+.opt[data-kind="break"] .opt-arrow,.opt[data-kind="pickup"] .opt-arrow{color:var(--corn)}
+.opt-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.opt-label{font-weight:900;font-size:16px;line-height:1.15;overflow-wrap:anywhere}
+.opt-sub{font-size:13px;color:var(--muted);font-weight:700;line-height:1.15}
+.opt-kind{margin-left:auto;font-size:9.5px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dim);white-space:nowrap;flex:0 0 auto}
+.opt-pass{border-style:dashed}
+.opt-item{border-color:var(--violet);background:#2b2368}
+.opt-icon{width:36px;height:36px;flex:0 0 auto;display:grid;place-items:center;border-radius:9px;background:rgba(0,0,0,.35)}
+.opt-icon .spr-icon{width:30px;height:30px}
+.opt-list.answered .opt:disabled{opacity:.42}
+.opt-list.answered .opt.whatif{opacity:.62;border-style:dashed;cursor:pointer}
+@media(hover:hover){.opt-list.answered .opt.whatif:hover{opacity:1;border-style:solid;border-color:var(--corn)}}
+.opt-list.answered .opt.whatif .opt-kind{color:var(--corn2)}
+.opt.peek{opacity:1!important;border-style:solid!important;border-color:#fff!important}
+.fb-whatif{border-color:var(--vc)!important;background:rgba(0,0,0,.28)}
+.fb-whatif .fb-tag{color:var(--vc)}
+.fb-whatif .fb-note{display:block;margin-top:6px;font-size:12px;color:var(--dim);font-weight:700}
+.opt-list.answered .opt.chosen{opacity:1;border-color:#fff}
+.opt.chosen[data-verdict="best"],.opt.is-answer{opacity:1!important;border-color:var(--mint)!important;box-shadow:0 0 0 3px rgba(67,232,164,.3)}
+.opt.chosen[data-verdict="ok"]{border-color:var(--corn)!important;box-shadow:0 0 0 3px rgba(255,196,45,.3)}
+.opt.chosen[data-verdict="bad"]{border-color:var(--orange)!important;box-shadow:0 0 0 3px rgba(255,155,61,.3)}
+.opt.chosen[data-verdict="lethal"]{border-color:var(--coral)!important;box-shadow:0 0 0 3px rgba(255,79,109,.35)}
+.opt.is-answer::before{content:'BEST';position:absolute;top:-10px;left:14px;font:8px var(--font-pixel);color:#1a1440;background:var(--mint);padding:3px 6px;border-radius:6px;z-index:1}
+
+.keys-hint{display:none;flex-wrap:wrap;gap:6px 16px;color:var(--dim);font-size:12.5px;font-weight:700;margin:2px 2px 0;line-height:1.8}
+.keys-hint span{white-space:nowrap}
+@media(hover:hover) and (min-width:1080px){.keys-hint{display:flex}}
+/* ---- Feedback ---- */
+.feedback{--vc:var(--mint);border-radius:18px;border:3px solid var(--vc);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--vc) 16%,#1b1740),#1b1740 55%);padding:18px;
+  animation:flipIn .5s cubic-bezier(.2,.8,.2,1);scroll-margin-top:calc(var(--topbar) + 12px);box-shadow:0 14px 40px rgba(0,0,0,.4),0 0 30px color-mix(in srgb,var(--vc) 25%,transparent)}
+.feedback.instant{animation:none}
+.v-best{--vc:var(--mint)}.v-ok{--vc:var(--corn)}.v-bad{--vc:var(--orange)}.v-lethal{--vc:var(--coral)}
+@keyframes flipIn{from{opacity:0;transform:perspective(700px) rotateX(-14deg) translateY(14px)}to{opacity:1;transform:none}}
+.fb-head{display:flex;align-items:center;gap:14px}
+.fb-icon{flex:0 0 auto;width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:var(--vc);color:#1a1440;box-shadow:0 0 18px color-mix(in srgb,var(--vc) 60%,transparent)}
+.v-lethal .fb-icon,.v-bad .fb-icon{color:#fff}
+.fb-titles{flex:1;min-width:0}
+.fb-verdict{font:13px/1.4 var(--font-pixel);color:var(--vc)}
+.fb-choice{color:var(--muted);font-size:14px;font-weight:700;margin-top:4px}
+.fb-pts{font:900 20px var(--font-body);color:var(--vc);white-space:nowrap}
+.fb-stats{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 12px}
+.chip-dmg{border-color:rgba(255,255,255,.2)}
+.chip-dmg.hurt{border-color:var(--coral);color:#ffd9e0;background:rgba(255,79,109,.12)}
+.fb-explain{margin:0;font-size:16px;line-height:1.55}
+.fb-rule{margin:12px 0 0;padding:10px 14px;border-left:3px solid var(--violet);background:rgba(167,139,250,.09);border-radius:0 12px 12px 0;font-size:14px;color:var(--muted);line-height:1.5}
+.fb-rule .fb-tag{color:var(--violet);margin-right:8px}
+.fb-block{margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08)}
+.fb-block p{margin:6px 0 0;font-size:15px;line-height:1.5}
+.fb-tag{display:inline-block;font:9px/1 var(--font-pixel);letter-spacing:.5px;color:var(--corn2);text-transform:uppercase}
+.fb-best{border-color:rgba(67,232,164,.45);background:rgba(67,232,164,.08)}
+.fb-best .fb-tag{color:var(--mint)}
+.fb-note{display:block;margin-top:6px;font-size:12px;color:var(--mint);font-weight:800}
+.fb-reality{border-color:rgba(63,217,255,.35);background:rgba(63,217,255,.06)}
+.fb-reality .fb-tag{color:var(--cyan)}
+.fb-lesson{border-color:rgba(255,196,45,.4);background:rgba(255,196,45,.07)}
+.fb-lesson p{font-weight:800;font-size:16px}
+.fb-actions{margin-top:18px;display:flex;justify-content:flex-end}
+.fb-actions .btn{width:100%}
+
+/* =========================================================
+   5. Result
+   ========================================================= */
+.result-head{text-align:center;margin:8px 0 22px}
+.result-head h2{font:clamp(16px,2vw,24px)/1.5 var(--font-pixel);color:var(--corn);margin:14px 0 0;text-shadow:0 3px 0 #7a4f00,0 0 26px rgba(255,196,45,.4)}
+.r-grid{display:grid;grid-template-columns:minmax(300px,.9fr) minmax(0,1.1fr);gap:26px;align-items:start}
+@media(max-width:899px){.r-grid{grid-template-columns:1fr}}
+.r-summary{display:flex;flex-direction:column;gap:16px}
+.r-big{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.r-num{font:900 clamp(64px,7vw,110px)/1 var(--font-body);color:#fff;letter-spacing:-2px;text-shadow:0 0 30px rgba(255,255,255,.25)}
+.r-num small{font-size:.45em;color:var(--muted);letter-spacing:0}
+.r-label{font:14px var(--font-pixel);color:var(--mint)}
+.r-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.r-stat{padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.25);border:2px solid var(--line)}
+.r-stat .lbl{font:9px var(--font-pixel);color:var(--dim);letter-spacing:.5px}
+.r-stat .val{font:900 30px/1.2 var(--font-body);margin-top:6px}
+.r-stat.pts .val{color:var(--corn)}.r-stat.perf .val{color:var(--cyan)}
+.r-tier{padding:18px;border-radius:16px;border:3px solid var(--tc,var(--corn));background:color-mix(in srgb,var(--tc,var(--corn)) 12%,transparent);box-shadow:0 0 30px color-mix(in srgb,var(--tc,var(--corn)) 25%,transparent)}
+.r-tier .lbl{font:9px var(--font-pixel);color:var(--muted);letter-spacing:.5px}
+.r-tier-name{font:clamp(16px,1.8vw,22px)/1.4 var(--font-pixel);color:var(--tc,var(--corn));margin:10px 0 8px;text-shadow:0 0 16px color-mix(in srgb,var(--tc,var(--corn)) 60%,transparent)}
+.r-tier-blurb{margin:0;font-size:16px;font-weight:600}
+.r-card-col{display:flex;flex-direction:column;gap:14px}
+#share-canvas{width:100%;height:auto;display:block;border-radius:16px;border:3px solid var(--line2);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.r-actions{display:flex;flex-wrap:wrap;gap:12px}
+.r-actions .btn{flex:1 1 150px}
+.r-hint{margin:10px 2px 0;font-size:13px;color:var(--muted);font-weight:700}
+.r-hint kbd{font:700 11px var(--font-body);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:1px 5px}
+/* Toast */
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;background:#1a1440;color:#fff;border:2px solid var(--corn);border-radius:12px;padding:12px 18px;
+  font-weight:800;font-size:14px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.55);max-width:min(92vw,520px);text-align:center;animation:popIn .25s ease}
+/* Inspect card: hover any piece on the board */
+.q-board-col{position:relative}
+.inspect{position:absolute;z-index:8;width:250px;padding:10px 12px;border-radius:12px;background:rgba(14,11,38,.97);border:2px solid var(--line2);box-shadow:0 14px 40px rgba(0,0,0,.55);
+  pointer-events:none;font-size:13px;line-height:1.4;color:var(--text)}
+.inspect .in-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.inspect .in-head img{width:28px;height:28px;image-rendering:pixelated;flex:0 0 auto}
+.inspect .in-name{font-weight:900;font-size:14px;color:#fff}
+.inspect .in-hp{font-size:12px;color:var(--muted);font-weight:800;margin-left:auto;white-space:nowrap}
+.inspect .in-bar{height:7px;border-radius:99px;background:#2a1f2f;overflow:hidden;margin:0 0 8px;border:1px solid rgba(255,255,255,.12)}
+.inspect .in-bar i{display:block;height:100%;background:linear-gradient(90deg,#ff4f6d,#ff9b3d);border-radius:99px}
+.inspect .in-status{font-weight:800;color:var(--st,#fff);margin-bottom:4px}
+.inspect .in-short{color:var(--muted);font-weight:600}
+.board .ent.enemy,.board .ent.player,.board .ent.obj,.board .ent.pickup,.board .ent.trap{cursor:help}
+.recap-wrap{margin-top:26px}
+.recap-title{font:11px var(--font-pixel);color:var(--corn2);margin:0 0 12px}
+.recap{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:899px){.recap{grid-template-columns:1fr}}
+.recap li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.22);border:2px solid var(--line);border-left:6px solid var(--vc,var(--line))}
+.recap-num{font:11px var(--font-pixel);color:var(--dim)}
+.recap-body{min-width:0}
+.recap-body b{display:block;font-size:15px}
+.recap-sub{display:block;color:var(--muted);font-size:13px;font-weight:600}
+.recap-pill{padding:5px 10px;border-radius:999px;background:var(--vc);color:#1a1440;font-size:12px;font-weight:900;white-space:nowrap}
+.v-lethal .recap-pill,.v-bad .recap-pill{color:#fff}
+
+/* =========================================================
+   6. Footer, modal, misc
+   ========================================================= */
+footer{max-width:1160px;margin:0 auto;padding:10px var(--gutter) 40px;color:var(--dim);font-size:13.5px;font-weight:600;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(5,4,18,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:20px}
+.modal-card{width:100%;max-width:720px;max-height:86vh;overflow:auto;background:linear-gradient(180deg,var(--card2),var(--card));border:3px solid var(--line2);border-radius:22px;padding:22px;animation:popIn .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+@keyframes popIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+@media(max-width:599px){.modal{align-items:flex-end;padding:0}.modal-card{border-radius:22px 22px 0 0;max-height:90vh}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.modal-head h3{margin:0;font:13px var(--font-pixel);color:var(--corn)}
+.legend-section{font:10px var(--font-pixel);color:var(--violet);margin:18px 0 10px;letter-spacing:.5px}
+.legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:599px){.legend-grid{grid-template-columns:1fr}}
+.legend-row{display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.legend-row b{display:block;font-size:14px}
+.legend-row span{display:block;color:var(--muted);font-size:12.5px;font-weight:600;line-height:1.35}
+.board.sample{--tile:44px;grid-template-columns:var(--tile);border-radius:6px;overflow:visible}
+.board.sample .cue-reveal{opacity:.6}
+.error-box{padding:18px;border-radius:14px;border:2px solid var(--coral);background:rgba(255,79,109,.1);font-weight:700}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* =========================================================
+   7. OG image mode (index.html#og, 1200x630 viewport)
+   ========================================================= */
+body.og-mode{width:1200px;height:630px;overflow:hidden}
+body.og-mode>:not(#og-root){display:none!important}
+body.og-mode *{animation:none!important}
+.og{position:relative;width:1200px;height:630px;display:grid;grid-template-columns:minmax(0,1fr) 470px;gap:44px;align-items:center;padding:0 64px;overflow:hidden;
+  background:radial-gradient(900px 520px at 50% -160px,rgba(103,76,232,.6),transparent 65%),radial-gradient(600px 400px at 100% 100%,rgba(255,196,45,.14),transparent 60%),linear-gradient(180deg,#160f3d,#0b0924 55%,#07061a)}
+.og::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:40px 40px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 75%)}
+.og::after{content:'';position:absolute;inset:0;background:
+  radial-gradient(5px 6px at 9% 14%,rgba(255,196,45,.8),transparent 70%),radial-gradient(4px 5px at 22% 88%,rgba(255,196,45,.6),transparent 70%),
+  radial-gradient(6px 7px at 47% 92%,rgba(255,196,45,.5),transparent 70%),radial-gradient(4px 5px at 55% 8%,rgba(255,224,138,.7),transparent 70%),
+  radial-gradient(5px 6px at 93% 20%,rgba(255,196,45,.7),transparent 70%),radial-gradient(4px 4px at 70% 96%,rgba(63,217,255,.7),transparent 70%),
+  radial-gradient(4px 4px at 36% 6%,rgba(167,139,250,.8),transparent 70%),radial-gradient(5px 6px at 96% 70%,rgba(255,196,45,.55),transparent 70%),
+  radial-gradient(3px 4px at 4% 60%,rgba(63,217,255,.6),transparent 70%),radial-gradient(4px 5px at 60% 30%,rgba(255,196,45,.35),transparent 70%)}
+.og-outline{position:absolute;inset:18px;border:3px solid rgba(255,196,45,.35);border-radius:26px;box-shadow:0 0 30px rgba(255,196,45,.15)}
+.og-left,.og-right{position:relative;z-index:1}
+.og-title{font:44px/1.3 var(--font-pixel);color:var(--corn);margin:22px 0 18px;text-shadow:0 4px 0 #7a4f00,0 8px 0 #3a2600,0 0 34px rgba(255,196,45,.45)}
+.og-tagline{font-size:23px;font-weight:800;color:#fff;margin:0 0 24px;line-height:1.4}
+.og-note{display:inline-flex;align-items:center;gap:10px;font:14px/1.4 var(--font-pixel);color:var(--corn2);padding:14px 18px;border-radius:14px;border:2px solid var(--line2);background:rgba(0,0,0,.35)}
+.og .hero-board{width:470px;max-width:none;padding:12px;cursor:default}
+.og .live-tag::before{animation:none}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .particles{display:none}
+}
+</style>
+</head>
+<body data-screen="hero">
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="particles" id="particles" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand-wrap"><button class="brand" id="btn-brand" type="button" title="Home"><span class="corn">🌽</span><span class="txt" id="brand-title">Build or Survive</span></button></div>
+    <div class="topbar-actions">
+      <button class="icon-btn restart" id="btn-restart" type="button" title="Restart the run">↺ <span>Restart</span></button>
+      <button class="icon-btn" id="btn-sound" type="button" title="Sound on / off" aria-pressed="true">🔊 <span id="lbl-sound">Sound</span></button>
+      <button class="icon-btn" id="btn-legend" type="button" title="Enemy legend &amp; board key">❔ <span>Legend</span></button>
+      <a class="icon-btn" id="btn-builder" href="./builder.html" title="Maze Builder: build your own floor, then try to survive it">🛠️ <span>Builder</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+  <!-- ================= HERO ================= -->
+  <section class="screen active" id="screen-hero" aria-labelledby="hero-title">
+    <div class="hero">
+      <!-- Mode 1: the quiz -->
+      <div class="mode mode-quiz" id="mode-quiz">
+        <span class="kicker">🌽 Maze of Gains · Deed Season</span>
+        <h1 class="title" id="hero-title">Would You Survive?</h1>
+        <p class="tagline" id="hero-tagline"></p>
+        <div class="hero-actions" id="hero-actions"></div>
+        <div class="mode-meta">
+          <div class="note" id="hero-note"></div>
+          <div class="scoring-line" id="hero-scoring"></div>
+        </div>
+        <div class="hero-board" id="hero-board" role="button" tabindex="0" title="Start the quiz">
+          <span class="live-tag" id="hero-live">LIVE · POSITION 1</span>
+          <div class="board-wrap" id="hero-board-inner"></div>
+        </div>
+        <div class="hero-caption" id="hero-caption"></div>
+      </div>
+      <!-- Mode 2: the Maze Builder (whole panel opens builder.html) -->
+      <div class="mode mode-build" id="mode-build">
+        <span class="kicker kicker-new">🛠️ Build your own floor</span>
+        <h2 class="title" id="build-title"><span class="brk">Maze</span> Builder</h2>
+        <p class="tagline" id="build-tagline">Place walls, enemies, pots, spikes and Golden Corn on one floor, set the weather and your talents, then try to survive it with the real rules. Share the link and dare your friends.</p>
+        <div class="hero-actions"><a class="btn btn-primary btn-xl" id="btn-builder-open" href="./builder.html">OPEN THE BUILDER ▶</a></div>
+        <div class="mode-meta">
+          <div class="note">14 x 9 floor · enemies, pots, spikes, traps, loot · weather · talents</div>
+          <div class="scoring-line">☠ Energy 0 = <b>run over</b> · 🔗 One link = <b>the same floor for everyone</b></div>
+        </div>
+        <a class="hero-board" id="build-board" href="./builder.html" title="Open the Maze Builder">
+          <span class="live-tag tag-build">BUILD · PLAY · SHARE</span>
+          <div class="board-wrap" id="build-board-inner"></div>
+        </a>
+        <div class="hero-caption" id="build-caption"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= QUIZ ================= -->
+  <section class="screen" id="screen-quiz" aria-live="polite">
+    <div class="progress"><div class="pbar" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="pbar"><i id="pbar-fill"></i></div><span class="plabel" id="plabel">1/10</span><span class="streak" id="streak" hidden></span></div>
+    <div class="card" id="quiz-card">
+      <div class="q-head">
+        <div class="q-head-main">
+          <div class="q-num" id="q-num">Position 1</div>
+          <h2 class="q-title" id="q-title"></h2>
+          <p class="q-hook" id="q-hook"></p>
+          <p class="q-mech-long" id="q-mech-long" hidden></p>
+        </div>
+        <span class="chip chip-mech" id="q-mech" hidden></span>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="q-grid">
+        <div class="q-board-col">
+          <div class="board-wrap" id="board-wrap"></div>
+          <div class="board-caption" id="board-caption">
+            <span><i class="swatch pre">!</i> strikes next turn</span><span><i class="swatch dir"></i> strike direction</span><span><i class="swatch tg"></i> danger tiles, shown after you answer</span><span>❄ frozen</span>
+          </div>
+        </div>
+        <div class="q-side">
+          <div class="side-title"><span id="side-title">YOUR MOVE</span><small id="side-sub">tap an arrow on the board</small></div>
+          <p class="side-help" id="side-help">Pick a move from the list, or click an outlined tile on the board. Hover any piece on the board to inspect it.</p>
+          <div class="opt-list" id="opt-list"></div>
+          <div class="keys-hint" id="keys-hint"><span><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> move / attack</span><span><kbd>Space</kbd> wait</span><span><kbd>I</kbd> item</span><span><kbd>Enter</kbd> next</span></div>
+          <div class="feedback" id="feedback" hidden></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESULT ================= -->
+  <section class="screen" id="screen-result" aria-labelledby="result-title">
+    <div class="result-head">
+      <span class="kicker">🏁 Run complete</span>
+      <h2 id="result-title">Here's the damage.</h2>
+    </div>
+    <div class="card">
+      <div class="r-grid">
+        <div class="r-summary">
+          <div class="r-big"><span class="r-num"><span id="r-survived">0</span><small>/<span id="r-total">10</span></small></span><span class="r-label">SURVIVED</span></div>
+          <div class="r-stats">
+            <div class="r-stat perf"><div class="lbl">PERFECT MOVES</div><div class="val" id="r-perfect">0/10</div></div>
+            <div class="r-stat pts"><div class="lbl">POINTS</div><div class="val" id="r-points">0/20</div></div>
+          </div>
+          <div class="r-tier" id="r-tier-box"><div class="lbl">YOUR RANK</div><div class="r-tier-name" id="r-tier">-</div><p class="r-tier-blurb" id="r-blurb"></p></div>
+        </div>
+        <div class="r-card-col">
+          <canvas id="share-canvas" width="1200" height="630" aria-label="Shareable result card"></canvas>
+          <div class="r-actions">
+            <button class="btn btn-primary btn-lg" id="btn-save" type="button">📋 <span id="lbl-save">Copy card</span></button>
+            <a class="btn btn-x btn-lg" id="btn-share" href="#" target="_blank" rel="noopener noreferrer">𝕏 <span id="lbl-share">Share on X</span></a>
+            <button class="btn btn-ghost btn-lg" id="btn-again" type="button">↻ <span id="lbl-again">Play again</span></button>
+          </div>
+          <p class="r-hint" id="r-hint">Copy the card, open the post, then paste it with <kbd>Ctrl</kbd>+<kbd>V</kbd>.</p>
+        </div>
+      </div>
+      <div class="recap-wrap">
+        <h3 class="recap-title">POSITION BY POSITION</h3>
+        <ol class="recap" id="recap"></ol>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<footer>
+  <span id="footer-text">Positions recorded from real Maze of Gains runs during Deed Season (Sept 2026).</span>
+  <span class="credit-slot" id="credit-foot"></span>
+  <button class="icon-btn" id="btn-legend-2" type="button">❔ Enemy legend</button>
+</footer>
+
+<!-- Legend modal -->
+<div class="modal" id="legend-modal" hidden role="dialog" aria-modal="true" aria-labelledby="legend-title">
+  <div class="modal-card">
+    <div class="modal-head"><h3 id="legend-title">LEGEND</h3><button class="icon-btn" id="btn-legend-close" type="button" aria-label="Close">✕</button></div>
+    <div class="legend-section">BOARD KEY</div>
+    <div class="legend-grid" id="legend-key"></div>
+    <div class="legend-section">ENEMIES</div>
+    <div class="legend-grid" id="legend-list"></div>
+  </div>
+</div>
+
+<noscript><div class="error-box" style="margin:20px">This quiz needs JavaScript.</div></noscript>
+<script src="assets/sprites.js"></script>
+<script src="./puzzles.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* =========================================================
+   0. Data & constants (everything content-related comes from
+      window.MOG_PUZZLES - nothing puzzle-specific is hard-coded)
+   ========================================================= */
+var DATA = window.MOG_PUZZLES || {};
+var META = DATA.meta || {};
+var LEGEND = DATA.legend || {};
+var PUZZLES = Array.isArray(DATA.puzzles) ? DATA.puzzles.filter(function (p) { return p && p.id; }) : [];
+var TOTAL = PUZZLES.length;
+var SCORING = Object.assign({ best: 2, ok: 1, bad: 0, lethal: 0 }, META.scoring || {});
+var TIERS = (Array.isArray(META.tiers) ? META.tiers : []).slice().sort(function (a, b) { return (a.min || 0) - (b.min || 0); });
+var MAX_POINTS = TOTAL * (SCORING.best || 0);
+var STORAGE_KEY = 'mog-would-you-survive-v1';
+var REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+/* 8-bit sounds, synthesized: nothing to load. Off switch in the top bar, remembered per browser. */
+var SFX = (function () {
+  var ctx = null, on = true;
+  try { on = localStorage.getItem('wys.sound') !== 'off'; } catch (e) { /* storage unavailable */ }
+  function ac() {
+    if (ctx) return ctx;
+    var C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    try { ctx = new C(); } catch (e) { return null; }
+    return ctx;
+  }
+  function tone(t0, freq, dur, type, vol, slideTo) {
+    var c = ac(); if (!c) return;
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'square'; o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(30, slideTo), t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol || 0.06, t0 + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.03);
+  }
+  function noise(t0, dur, vol) {
+    var c = ac(); if (!c) return;
+    var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0), i;
+    for (i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    var s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+    s.buffer = buf; f.type = 'lowpass'; f.frequency.value = 1600; g.gain.value = vol || 0.1;
+    s.connect(f); f.connect(g); g.connect(c.destination); s.start(t0);
+  }
+  var SOUNDS = {
+    blip:   function (t) { tone(t, 660, 0.06, 'square', 0.04); },
+    click:  function (t) { tone(t, 440, 0.045, 'square', 0.035); },
+    best:   function (t) { [523, 659, 784, 1047].forEach(function (f, i) { tone(t + i * 0.07, f, 0.13, 'square', 0.05); }); },
+    ok:     function (t) { tone(t, 523, 0.1, 'square', 0.045); tone(t + 0.1, 659, 0.15, 'square', 0.045); },
+    bad:    function (t) { noise(t, 0.16, 0.12); tone(t, 220, 0.18, 'sawtooth', 0.045, 110); },
+    lethal: function (t) { noise(t, 0.22, 0.12); [330, 262, 196, 131].forEach(function (f, i) { tone(t + 0.1 + i * 0.14, f, 0.17, 'sawtooth', 0.05); }); }
+  };
+  function play(name) {
+    if (!on || !SOUNDS[name]) return;
+    var c = ac(); if (!c) return;
+    if (c.state === 'suspended') { try { c.resume(); } catch (e) { /* needs a gesture */ } }
+    try { SOUNDS[name](c.currentTime); } catch (e) { /* audio unavailable */ }
+  }
+  function set(v) { on = !!v; try { localStorage.setItem('wys.sound', on ? 'on' : 'off'); } catch (e) { /* storage unavailable */ } }
+  return { play: play, set: set, isOn: function () { return on; } };
+})();
+var MAX_TILE = 56;
+
+var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+var ARROWS = { up: '▲', down: '▼', left: '◀', right: '▶', pass: '◎', item: '✦' };
+var KIND_LABEL = { move: 'Move', attack: 'Attack', pass: 'Wait', item: 'Item', blocked: 'Blocked', 'break': 'Break', pickup: 'Pick up' };
+var VERDICTS = {
+  best:   { title: 'PERFECT MOVE',   icon: '★', cls: 'v-best',   short: 'Perfect',  color: '#43e8a4' },
+  ok:     { title: 'YOU SURVIVE',    icon: '✔', cls: 'v-ok',     short: 'Survived', color: '#FFC42D' },
+  bad:    { title: 'YOU TAKE A HIT', icon: '✖', cls: 'v-bad',    short: 'Hit',      color: '#ff9b3d' },
+  lethal: { title: 'RUN OVER',       icon: '☠', cls: 'v-lethal', short: 'Dead',     color: '#ff4f6d' }
+};
+var TIER_COLORS = ['#ff4f6d', '#ff9b3d', '#3fd9ff', '#FFC42D', '#43e8a4', '#a78bfa'];
+var WEATHER = { blizzard: ['❄️', 'Blizzard'], heatwave: ['🔥', 'Heatwave · mirage'], storm: ['⛈️', 'Storm'], gale: ['🌪️', 'Gale'], miasma: ['☠️', 'Miasma'] };
+var ITEM_HINTS = { single_shot: 'Single Shot: 25 damage to one enemy in a line. Using it takes your turn.', pogo_stick: 'Pogo Stick: jump over the tile in front of you. Using it takes your turn.' };
+var ITEM_NAMES = { single_shot: 'Single Shot', pogo_stick: 'Pogo Stick', bomb: 'Bomb', shovel: 'Shovel', torch: 'Torch', potion: 'Potion', compass: 'Compass', freeze_ray: 'Freeze Ray', teleport: 'Teleport' };
+var OBJECT_HINTS = { pot: 'Smash it for 0 Energy. Can hold loot.', crate: 'Smash it for 0 Energy. Can hold loot.', corn_stalk: 'Break it for Golden Corn.', stairs: 'Exit to the next floor.', chest: 'Open it for loot.', fountain: 'Restores 10 Energy.', portal: 'Teleports you for coins: 10 the first time, more each use.' };
+var PICKUP_HINTS = { golden_corn: 'Step on it to collect. Drops disappear after about 20 turns.', small_energy_orb: 'Step on it to restore Energy.', large_energy_orb: 'Step on it to restore Energy.', treasure: 'Step on it to collect coins.', item: 'Step on it to pick up the item.', marble: 'Step on it to collect.' };
+var TRAP_HINTS = { spike: 'Spikes: they rise on a timer and hit whoever stands here.', arrow: 'Arrow trap: fires along its line on a timer.' };
+var OBJECTS = {
+  pot: { glyph: '🏺', name: 'Pot', cls: 'o-pot' }, crate: { glyph: '📦', name: 'Crate' }, corn_stalk: { glyph: '🌽', name: 'Corn stalk', cls: 'o-stalk' },
+  stairs: { svg: 'stairs', name: 'Stairs down' }, chest: { svg: 'chest', name: 'Chest' }, fountain: { svg: 'fountain', name: 'Energy fountain (+10)' },
+  portal: { svg: 'portal', name: 'Portal', cls: 'o-portal' }
+};
+var PICKUPS = {
+  golden_corn: { glyph: '🌽', cls: 'pk-corn', name: 'Golden corn' }, small_energy_orb: { orb: 'orb-s', name: 'Small energy orb' },
+  large_energy_orb: { orb: 'orb-l', name: 'Large energy orb' }, treasure: { glyph: '💎', cls: 'pk-treasure', name: 'Treasure' },
+  item: { glyph: '🎒', cls: 'pk-item', name: 'Item' }, marble: { orb: 'orb-m', name: 'Marble' }
+};
+var SVG = {
+  hero: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 5l3 5M25 5l-3 5M4 10l6 1M28 10l-6 1" stroke="#3a2600" stroke-width="2.2" stroke-linecap="round" fill="none"/><rect x="9.5" y="2" width="5" height="14" rx="2.5" fill="#3a2600"/><rect x="17.5" y="2" width="5" height="14" rx="2.5" fill="#3a2600"/><circle cx="16" cy="20" r="9.5" fill="#3a2600"/><circle cx="12.4" cy="19" r="1.9" fill="#FFC42D"/><circle cx="19.6" cy="19" r="1.9" fill="#FFC42D"/><path d="M13.5 24q2.5 2 5 0" stroke="#FFC42D" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>',
+  target: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.2" fill="none" stroke="#ff4f6d" stroke-width="2.2"/><path d="M16 .8v5.5M16 25.7v5.5M.8 16h5.5M25.7 16h5.5" stroke="#ff4f6d" stroke-width="2.6" stroke-linecap="round"/><path d="M4.5 4.5l3 3M27.5 4.5l-3 3M4.5 27.5l3-3M27.5 27.5l-3-3" stroke="#ff4f6d" stroke-width="1.6" stroke-linecap="round" opacity=".8"/></svg>',
+  stairs: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="6" fill="#123c2f" stroke="#43e8a4" stroke-width="2.2"/><path d="M16 8v13M10 15l6 6 6-6" stroke="#43e8a4" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  spike: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 29L8.5 11 14 29zM11 29l5-23 5 23zM18 29l5.5-18L29 29z" fill="#aab3c5" stroke="#5f6a80" stroke-width="1.2" stroke-linejoin="round"/></svg>',
+  chest: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="12" width="26" height="16" rx="3" fill="#8a5a2b" stroke="#3a2600" stroke-width="1.5"/><path d="M3 15a13 6 0 0 1 26 0v2H3z" fill="#a86f38" stroke="#3a2600" stroke-width="1.5"/><path d="M3 20h26" stroke="#3a2600" stroke-width="1.5"/><rect x="13" y="16" width="6" height="7" rx="1.5" fill="#FFC42D" stroke="#3a2600" stroke-width="1.2"/></svg>',
+  fountain: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 19h22l-3.5 9.5h-15z" fill="#2a6fb3" stroke="#0b2e57" stroke-width="1.4" stroke-linejoin="round"/><ellipse cx="16" cy="19" rx="12" ry="3.6" fill="#3fd9ff" stroke="#0b2e57" stroke-width="1.4"/><path d="M16 3c3.2 4.6 5.3 7.4 5.3 10.2a5.3 5.3 0 0 1-10.6 0C10.7 10.4 12.8 7.6 16 3z" fill="#8fecff" stroke="#0b2e57" stroke-width="1.3"/><circle cx="14" cy="12" r="1.4" fill="#fff"/></svg>',
+  portal: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5" fill="rgba(120,80,255,.28)" stroke="#a78bfa" stroke-width="3"/><circle cx="16" cy="16" r="7" fill="none" stroke="#dcd0ff" stroke-width="2.2" stroke-dasharray="7 5"/><circle cx="16" cy="16" r="2.2" fill="#fff"/></svg>'
+};
+
+/* Game sprites: window.MOG_SPRITES (assets/sprites.js) -> { key: { src, w, h, scale? } }; glyphs below are the fallback */
+var SPR = (window.MOG_SPRITES && typeof window.MOG_SPRITES === 'object') ? window.MOG_SPRITES : null;
+if (!SPR && window.console) console.info('[Would You Survive] assets/sprites.js not loaded - drawing the board with built-in glyph fallbacks.');
+var spriteMissing = {};
+function hasSprite(key) { var s = SPR && SPR[key]; return !!(s && s.src); } // silent probe (src may be a path or a data URI)
+function spriteInfo(key) {
+  if (hasSprite(key)) return SPR[key];
+  if (SPR && key && !spriteMissing[key] && !/^(cue_|deco_|tile_)/.test(key)) { spriteMissing[key] = true; if (window.console) console.info('[Would You Survive] no sprite for "' + key + '" - using the glyph fallback.'); }
+  return null;
+}
+function spriteImg(key, cls) { // the game draws frames at tile/32 scale, centred on the tile, overhanging it (tall frames anchor at the bottom)
+  var s = spriteInfo(key); if (!s) return null;
+  var k = s.scale || 1, w = (s.w || 32) / 32 * k, h = (s.h || 32) / 32 * k;
+  var img = el('img', { 'class': 'spr ' + (cls || '') + (h > w ? ' anchor-bottom' : ''), src: s.src, alt: '', draggable: 'false' });
+  img.style.width = 'calc(var(--tile) * ' + w + ')'; img.style.height = 'calc(var(--tile) * ' + h + ')';
+  return img;
+}
+function spriteIcon(key, px) { var s = spriteInfo(key); return s ? el('img', { 'class': 'spr-icon', src: s.src, alt: '', width: px, height: px, draggable: 'false' }) : null; }
+var CREDIT = Object.assign({ label: 'created by Florence', handle: '@flxrnc', url: 'https://x.com/flxrnc' }, (META.credit && typeof META.credit === 'object') ? META.credit : {});
+function creditLink(cls) {
+  return el('a', { 'class': 'credit ' + (cls || ''), href: CREDIT.url || 'https://x.com/flxrnc', target: '_blank', rel: 'noopener noreferrer', title: 'Made by ' + (CREDIT.handle || CREDIT.label) },
+    el('span', { 'class': 'x-logo', 'aria-hidden': 'true', text: '𝕏' }), ' ' + (CREDIT.label || 'created by Florence') + (CREDIT.handle ? ' · ' + CREDIT.handle : ''));
+}
+
+/* =========================================================
+   1. Tiny DOM helpers
+   ========================================================= */
+function $(sel, root) { return (root || document).querySelector(sel); }
+function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+function el(tag, attrs) {
+  var n = document.createElement(tag), i, k, v, kids = Array.prototype.slice.call(arguments, 2);
+  if (attrs) for (k in attrs) {
+    v = attrs[k];
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'class') n.className = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k === 'text') n.textContent = v;
+    else if (k === 'style') n.style.cssText = v;
+    else if (k.indexOf('on') === 0) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? '' : v);
+  }
+  for (i = 0; i < kids.length; i++) append(n, kids[i]);
+  return n;
+}
+function append(n, c) {
+  if (c === null || c === undefined || c === false) return;
+  if (Array.isArray(c)) { c.forEach(function (x) { append(n, x); }); return; }
+  n.appendChild(c.nodeType ? c : document.createTextNode(String(c)));
+}
+function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); return n; }
+function pretty(id) { return String(id || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
+function itemName(id) { return ITEM_NAMES[id] || pretty(id); }
+function normVerdict(v) { return VERDICTS[v] ? v : (v === 'blocked' ? 'blocked' : 'bad'); }
+function findOption(p, id) { return (Array.isArray(p.options) ? p.options : []).filter(function (o) { return o && o.id === id; })[0] || null; }
+function bestOption(p) {
+  return findOption(p, p.answer) || (Array.isArray(p.options) ? p.options : []).filter(function (o) { return o && o.verdict === 'best'; })[0] || null;
+}
+function stripPrefix(s, re) { s = String(s || '').replace(re, ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* =========================================================
+   2. Board rendering (CSS grid; --tile set per board in px)
+   ========================================================= */
+var fitted = []; // boards that need re-fitting on resize
+function tileVal(b, x, y) { var row = b.tiles && b.tiles[y]; if (!row) return 2; var v = row[x]; return (v === 0 || v === 1 || v === 2) ? v : 2; }
+function inBounds(w, h, e) { return !!e && Number.isInteger(e.x) && Number.isInteger(e.y) && e.x >= 0 && e.y >= 0 && e.x < w && e.y < h; }
+
+/* ---- Tileset: the game's auto-tile rules (assets/tiles.md 1.3-1.7). isFloor = in-bounds && tile==0 (fog counts as not-floor). ---- */
+function hash01(x, y) { var h = ((x + 1) * 73856093) ^ ((y + 1) * 19349663); h = Math.imul(h ^ (h >>> 13), 1274126177); h = (h ^ (h >>> 16)) >>> 0; return (h % 10000) / 10000; }
+function pickVariant(base, r, n, wBase, wVar) { // weighted: base wBase, each variant wVar (face 6:1:1:1, sides 5:1:1:1)
+  var total = wBase + n * wVar, t = r * total;
+  if (t < wBase) return base;
+  return base + '_v' + Math.min(n, Math.floor((t - wBase) / wVar) + 1);
+}
+function tileSpec(b, w, h, x, y) {
+  function F(xx, yy) { return xx >= 0 && yy >= 0 && xx < w && yy < h && tileVal(b, xx, yy) === 0; }
+  var v = tileVal(b, x, y), r = hash01(x, y);
+  if (v === 2) return { cls: 'fog r-fog', key: 'tile_fog' };
+  if (v === 0) {
+    var odd = (x + y) % 2 === 1, variant = r < 0.10;
+    return { cls: 'floor r-floor' + (odd ? ' odd' : '') + (odd && variant ? ' chk' : ''), key: variant ? 'tile_floor_v' + (1 + Math.floor(r / 0.10 * 7)) : (odd ? 'tile_floor_b' : 'tile_floor_a') };
+  }
+  var S = F(x, y + 1), N = F(x, y - 1), W = F(x - 1, y), E = F(x + 1, y);
+  if (S) return { cls: 'wall r-face', face: true, key: W ? 'tile_wall_face_end_l' : E ? 'tile_wall_face_end_r' : pickVariant('tile_wall_face', r, 3, 6, 1) };
+  if (N) return { cls: 'wall r-bottom', key: W ? 'tile_wall_bottom_end_l' : E ? 'tile_wall_bottom_end_r' : 'tile_wall_bottom' };
+  if (E) return { cls: 'wall r-side', key: pickVariant('tile_wall_left', r, 3, 5, 1) };
+  if (W) return { cls: 'wall r-side', key: pickVariant('tile_wall_right', r, 3, 5, 1) };
+  if (F(x + 1, y + 1)) return { cls: 'wall r-corner', key: 'tile_wall_tl' };
+  if (F(x - 1, y + 1)) return { cls: 'wall r-corner', key: 'tile_wall_tr' };
+  if (F(x + 1, y - 1)) return { cls: 'wall r-corner', key: 'tile_wall_bl' };
+  if (F(x - 1, y - 1)) return { cls: 'wall r-corner', key: 'tile_wall_br' };
+  return { cls: 'wall r-top', key: 'tile_wall_top' };
+}
+function resolveTileKey(key) { // exact key, then its base, then the role's generic art, then the legacy floor/wall keys
+  var chain = [key, key.replace(/_(v\d+|end_[lr])$/, '')];
+  if (/^tile_floor/.test(key)) chain.push('tile_floor_a', 'tile_floor', 'floor');
+  else if (/^tile_wall_face/.test(key)) chain.push('tile_wall_face', 'wall');
+  else if (/^tile_wall/.test(key)) chain.push('tile_wall_top', 'tile_wall');
+  for (var i = 0; i < chain.length; i++) if (hasSprite(chain[i])) return chain[i];
+  return null;
+}
+function bgVar(board, key) { // one CSS variable per used key on the board element (works for paths and data URIs)
+  if (!board._keys) board._keys = {};
+  if (!board._keys[key]) { board.style.setProperty('--t-' + key, 'url("' + SPR[key].src + '")'); board._keys[key] = true; }
+  return 'var(--t-' + key + ')';
+}
+function shadowCss(b, w, h, x, y, v) { // tiles.md 1.6: wall shadow on floor cells, warm rim on wall cells
+  function isWall(xx, yy) { return xx >= 0 && yy >= 0 && xx < w && yy < h && tileVal(b, xx, yy) === 1; }
+  function isFloor(xx, yy) { return xx >= 0 && yy >= 0 && xx < w && yy < h && tileVal(b, xx, yy) === 0; }
+  var parts = [];
+  if (v === 0) {
+    var up = isWall(x, y - 1), left = isWall(x - 1, y);
+    if (up) parts.push('linear-gradient(rgba(0,0,0,.26),rgba(0,0,0,0) 22%)', 'linear-gradient(rgba(0,0,0,.30),rgba(0,0,0,0) 55%)');
+    if (left) parts.push('linear-gradient(90deg,rgba(0,0,0,.16),rgba(0,0,0,0) 40%)');
+    if (up && left) parts.push('radial-gradient(circle at 0 0,rgba(0,0,0,.22),rgba(0,0,0,0) 45%)');
+  } else if (v === 1) {
+    if (isFloor(x, y - 1)) parts.push('linear-gradient(rgba(255,236,190,.18),rgba(255,236,190,0) 25%)');
+    if (isFloor(x - 1, y)) parts.push('linear-gradient(90deg,rgba(255,236,190,.18),rgba(255,236,190,0) 25%)');
+  }
+  return parts.join(',');
+}
+function torchEl() {
+  var a = spriteImg('deco_torch'), f = spriteImg('deco_torch_f1');
+  if (!a) return el('div', { 'class': 'ent torch fb' }, el('i', { 'class': 'glow' }), el('span', { 'class': 'flame' }));
+  if (f) f.classList.add('f1');
+  return el('div', { 'class': 'ent torch' }, el('i', { 'class': 'glow' }), a, f);
+}
+function renderBoard(p, container, opts) {
+  opts = opts || {};
+  var b = p.board || {}, w = Math.max(1, b.w | 0), h = Math.max(1, b.h | 0);
+  var board = el('div', { 'class': 'board' + (opts.mini ? ' mini' : ''), role: 'img', 'aria-label': (p.title || 'Board') + ' - ' + w + ' by ' + h + ' dungeon board' });
+  board.style.gridTemplateColumns = 'repeat(' + w + ', var(--tile))';
+  // bucket entities per tile so rendering is a single pass
+  var cell = {};
+  function put(list, field) {
+    (Array.isArray(list) ? list : []).forEach(function (e) {
+      if (!inBounds(w, h, e)) return;
+      var k = e.x + ',' + e.y, c = cell[k] || (cell[k] = {});
+      (c[field] || (c[field] = [])).push(e);
+    });
+  }
+  put(p.traps, 'traps'); put(p.objects, 'objects'); put(p.pickups, 'pickups'); put(p.enemies, 'enemies');
+  // danger tiles from the data: target/aoe are revealed after the answer; explode tiles the game itself shows ahead of time
+  var reveal = {}, explode = {};
+  (Array.isArray(p.cues) ? p.cues : []).forEach(function (q) { if (!inBounds(w, h, q)) return; if (q.kind === 'explode') explode[q.x + ',' + q.y] = true; else reveal[q.x + ',' + q.y] = true; });
+  (Array.isArray(p.enemies) ? p.enemies : []).forEach(function (e) { // boomcap on its last charge turn: the 8 neighbours
+    if (!/boomcap/.test(e.type || '') || e.phase !== 'charge' || !(e.turns <= 1)) return;
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if (dx || dy) explode[(e.x + dx) + ',' + (e.y + dy)] = true;
+  });
+  var pl = p.player, x, y, v, t, c, k, hasPlayer, spec, key, bg, sh, faces = 0;
+  for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+    v = tileVal(b, x, y); k = x + ',' + y;
+    spec = tileSpec(b, w, h, x, y);
+    t = el('div', { 'class': 'tile ' + spec.cls, 'data-x': x, 'data-y': y });
+    key = resolveTileKey(spec.key); bg = el('i', { 'class': 'tbg' + (key ? '' : ' nobg') });
+    if (key) bg.style.backgroundImage = bgVar(board, key);
+    t.appendChild(bg);
+    sh = shadowCss(b, w, h, x, y, v);
+    if (sh) t.appendChild(el('i', { 'class': 'tsh', style: 'background-image:' + sh }));
+    if (spec.face && (++faces % 5 === 2)) t.appendChild(torchEl());   // a torch on roughly every 5th brick face
+    if (reveal[k]) t.appendChild(cueSprite('cue_target', 'cue-reveal'));
+    if (explode[k]) t.appendChild(cueSprite('cue_explode', 'cue-explode'));
+    c = cell[k] || {};
+    hasPlayer = !!(pl && pl.x === x && pl.y === y);
+    (c.traps || []).forEach(function (q) { t.appendChild(trapEl(q)); });
+    (c.objects || []).forEach(function (q) { t.appendChild(objectEl(q)); });
+    (c.pickups || []).forEach(function (q) { t.appendChild(pickupEl(q)); });   // pickups first: an enemy standing on one covers it, like the game
+    (c.enemies || []).forEach(function (q) { t.appendChild(enemyEl(q)); enemyCueEls(q).forEach(function (n) { t.appendChild(n); }); });
+    if (hasPlayer) { t.classList.add('has-player'); t.appendChild(playerEl()); }
+    board.appendChild(t);
+  }
+  clear(container).appendChild(board);
+  // Give the frame a definite width (w * max tile + frame padding + border) so the tile fit is not circular
+  // inside auto-sized grid columns; max-width:100% lets it shrink on narrow screens.
+  var maxTile = opts.maxTile || MAX_TILE;
+  container.style.width = 'calc(' + (w * maxTile) + 'px + 2 * var(--frame-pad) + 6px)';
+  container.style.maxWidth = '100%';
+  var entry = { board: board, container: container, w: w, maxTile: maxTile };
+  fitted = fitted.filter(function (f) { return document.body.contains(f.board); });
+  fitted.push(entry);
+  applyFit(entry);
+  return board;
+}
+function applyFit(f) {
+  var cs = getComputedStyle(f.container);
+  var avail = f.container.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+  if (!(avail > 0)) return;
+  var t = Math.max(12, Math.min(f.maxTile, Math.floor(avail / f.w)));
+  f.board.style.setProperty('--tile', t + 'px');
+}
+function refit() { fitted.forEach(applyFit); }
+window.addEventListener('resize', refit);
+
+/* ---- Cues at the attacker's tile (tiles.md 2): "!" on the last charge turn, direction triangle on the edge facing the target, cross composite for soldiers ---- */
+function cueSprite(key, cls) {
+  var n = el('div', { 'class': 'ent cue ' + cls }), img = hasSprite(key) ? spriteImg(key) : null;
+  if (img) n.appendChild(img); else n.classList.add('fb');
+  return n;
+}
+function enemyCueEls(e) {
+  var out = [], t = e.target;
+  if ((e.phase || 'idle') !== 'charge') return out;
+  var isAoe = /skelesoldier/.test(e.type || ''), isBoom = /boomcap/.test(e.type || '');
+  var dx = t ? Math.sign((t.x | 0) - e.x) : 0, dy = t ? Math.sign((t.y | 0) - e.y) : 0;
+  if (isAoe && t) out.push(cueSprite('cue_aoe', 'cue-aoe'));
+  else if (t && (dx || dy) && !isBoom) {
+    var dir = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+    out.push(cueSprite(dir === 'up' ? 'cue_dir' : 'cue_dir_' + dir, 'cue-dir d-' + dir));
+  }
+  if (e.turns === 1) out.push(cueSprite('cue_preattack', 'cue-pre'));
+  return out;
+}
+
+/* ---- Entities: sprite when the key exists, glyph otherwise; only the HUD the game shows ---- */
+function trapEl(t) {
+  var n = el('div', { 'class': 'ent trap', 'aria-label': pretty(t.type || 'trap') + ' trap' }), img = spriteImg(t.type);
+  n.__ent = { kind: 'trap', name: pretty(t.type || 'trap') + ' trap', type: t.type, hint: TRAP_HINTS[t.type] || '' };
+  if (img) n.appendChild(img); else if (t.type === 'spike') n.innerHTML = SVG.spike; else n.appendChild(el('span', { 'class': 'glyph', text: '⚠️' }));
+  return n;
+}
+function objectEl(o) {
+  var d = OBJECTS[o.type] || { glyph: '▪', name: pretty(o.type) }, img = spriteImg(o.type);
+  var n = el('div', { 'class': 'ent obj' + (img ? '' : ' ' + (d.cls || '')), 'aria-label': d.name });
+  n.__ent = { kind: 'object', name: d.name, type: o.type, hint: OBJECT_HINTS[o.type] || '' };
+  if (img) n.appendChild(img); else if (d.svg) n.innerHTML = SVG[d.svg]; else n.appendChild(el('span', { 'class': 'glyph', text: d.glyph }));
+  return n;
+}
+function pickupEl(pk) {
+  var d = PICKUPS[pk.type] || { glyph: '✦', name: pretty(pk.type) }, img = spriteImg(pk.type);
+  var frozen = pk.frozen > 0;
+  var n = el('div', { 'class': 'ent pickup' + (frozen ? ' frozen' : ''), 'aria-label': d.name + (frozen ? ' (frozen, thaws in ' + pk.frozen + ' turn' + (pk.frozen === 1 ? '' : 's') + ')' : '') });
+  n.__ent = { kind: 'pickup', name: d.name, type: pk.type, hint: (frozen ? 'Frozen: thaws in ' + pk.frozen + ' turn' + (pk.frozen === 1 ? '' : 's') + '. ' : '') + (PICKUP_HINTS[pk.type] || '') };
+  if (img) n.appendChild(img);
+  else n.appendChild(d.orb ? el('span', { 'class': 'orb ' + d.orb }) : el('span', { 'class': 'glyph pk ' + (d.cls || ''), text: d.glyph }));
+  if (frozen) { var ice = spriteImg('ice'); n.appendChild(ice ? el('span', { 'class': 'ice-spr' }, ice) : el('span', { 'class': 'ice' })); }
+  return n;
+}
+function hpBarEl(e) { // tiles.md 3: 26x7 outline, 24x5 track, fill by hp/maxHp, 1px ticks every 10 HP (maxHp/8 above 80)
+  var pct = Math.max(0, Math.min(1, e.hp / e.maxHp)), step = e.maxHp > 80 ? e.maxHp / 8 : 10, ticks = [], t;
+  for (t = step; t < e.maxHp; t += step) ticks.push(el('i', { 'class': 'tick', style: 'left:calc(var(--u) * ' + (t / e.maxHp * 24).toFixed(2) + 'px)' }));
+  return el('span', { 'class': 'hpbar', 'aria-hidden': 'true' }, el('span', { 'class': 'track' }, el('span', { 'class': 'fill', style: 'width:' + (pct * 100).toFixed(1) + '%' }), ticks));
+}
+function shieldEl(n) {
+  return el('span', { 'class': 'shield', title: 'Shield ' + n },
+    el('span', { html: '<svg viewBox="0 0 11 13" aria-hidden="true"><path d="M5.5 .6 10.4 2.6 V6.4 C10.4 9.3 8.2 11.4 5.5 12.4 2.8 11.4 .6 9.3 .6 6.4 V2.6 Z" fill="#bff0ff" stroke="#0a4a5e" stroke-width="1"/></svg>' }),
+    el('b', { text: n }));
+}
+function enemyEl(e) {
+  var L = LEGEND[e.type] || {};
+  var name = L.name || pretty(e.type), color = L.color || '#ff5c5c', icon = L.icon || '👾';
+  var phase = e.phase || 'idle', inv = !(e.maxHp > 0);
+  var tip = name + (inv ? ' - invulnerable' : ' - ' + e.hp + '/' + e.maxHp + ' HP');
+  if (phase === 'charge') tip += ', strikes in ' + (e.turns != null ? e.turns : '?') + ' turn' + (e.turns === 1 ? '' : 's');
+  else if (phase === 'rest') tip += ', resting (cannot strike this turn)';
+  else if (phase === 'attack') tip += ', just attacked';
+  if (e.shield > 0) tip += ', shield ' + e.shield;
+  if (L.short) tip += '. ' + L.short;
+  var n = el('div', { 'class': 'ent enemy ph-' + phase + (inv ? ' inv' : '') + (e.shield > 0 ? ' shielded' : ''), style: '--c:' + color, 'aria-label': tip, 'data-type': e.type });
+  n.__ent = { kind: 'enemy', e: e, name: name, color: color, short: L.short || '' };
+  var sw = el('span', { 'class': 'sw' }), img = spriteImg(e.type);
+  sw.appendChild(img || el('span', { 'class': 'fb-badge', text: icon }));
+  n.appendChild(sw);
+  if (!inv && (e.hp < e.maxHp || phase === 'charge')) n.appendChild(hpBarEl(e));
+  if (e.shield > 0) n.appendChild(shieldEl(e.shield));
+  return n;
+}
+function playerEl() {
+  var sw = el('span', { 'class': 'sw' }), img = spriteImg('player');
+  sw.appendChild(img || el('span', { 'class': 'fb-badge', html: SVG.hero }));
+  var n = el('div', { 'class': 'ent player', 'aria-label': 'You' }, sw); n.__ent = { kind: 'player' }; return n;
+}
+
+/* ---- Inspect card: hover a piece on the quiz board to read it like the game's info panel ---- */
+var INSPECT = el('div', { 'class': 'inspect', id: 'inspect', hidden: true });
+var currentP = null;
+function phaseInfo(e) {
+  var inv = !(e.maxHp > 0), t = e.turns, pl = currentP && currentP.player;
+  if (inv) return { txt: 'Invulnerable. No action can go into its tile.', c: '#a78bfa' };
+  if (e.shield > 0) return { txt: 'Shield ' + e.shield + (/frogspawn/.test(e.type || '') ? ': invulnerable while its ' + e.shield + ' frogglet' + (e.shield === 1 ? '' : 's') + ' live.' : '.'), c: '#3fd9ff' };
+  if (e.phase === 'charge') {
+    var aim = e.target && pl && e.target.x === pl.x && e.target.y === pl.y ? ' Aimed at your tile.' : (e.target ? ' Aimed at another tile.' : '');
+    return { txt: (t === 1 ? 'Winding up: strikes next turn.' : 'Winding up: strikes in ' + t + ' turns.') + aim, c: '#ff4f6d' };
+  }
+  if (e.phase === 'rest') return { txt: 'Resting: cannot strike this turn. Free hit.', c: '#43e8a4' };
+  if (e.phase === 'attack') return { txt: 'Just attacked: will not strike again this turn.', c: '#43e8a4' };
+  return { txt: 'Idle: no strike lined up yet.', c: '#b9b3d9' };
+}
+function inspectFill(d) {
+  clear(INSPECT); INSPECT.style.removeProperty('--st');
+  var head = el('div', { 'class': 'in-head' }), img;
+  if (d.kind === 'enemy') {
+    var e = d.e, inv = !(e.maxHp > 0), ph = phaseInfo(e);
+    img = spriteIcon(e.type, 28); if (img) head.appendChild(img);
+    head.appendChild(el('span', { 'class': 'in-name', text: d.name }));
+    head.appendChild(el('span', { 'class': 'in-hp', text: inv ? '0 HP' : e.hp + '/' + e.maxHp + ' HP' }));
+    INSPECT.appendChild(head);
+    if (!inv) INSPECT.appendChild(el('div', { 'class': 'in-bar' }, el('i', { style: 'width:' + Math.max(0, Math.min(100, e.hp / e.maxHp * 100)).toFixed(1) + '%' })));
+    INSPECT.style.setProperty('--st', ph.c);
+    INSPECT.appendChild(el('div', { 'class': 'in-status', text: ph.txt }));
+    if (d.short) INSPECT.appendChild(el('div', { 'class': 'in-short', text: d.short + '.' }));
+  } else if (d.kind === 'player') {
+    var p = currentP || {}, items = Array.isArray(p.items) ? p.items : [];
+    img = spriteIcon('player', 28); if (img) head.appendChild(img);
+    head.appendChild(el('span', { 'class': 'in-name', text: 'You' }));
+    head.appendChild(el('span', { 'class': 'in-hp', text: (p.energy != null ? p.energy + '/' + p.maxEnergy : '?') + ' Energy' }));
+    INSPECT.appendChild(head);
+    if (p.maxEnergy) INSPECT.appendChild(el('div', { 'class': 'in-bar' }, el('i', { style: 'width:' + Math.max(0, Math.min(100, p.energy / p.maxEnergy * 100)).toFixed(1) + '%;background:linear-gradient(90deg,#1cb5e0,#3fd9ff)' })));
+    INSPECT.style.setProperty('--st', '#3fd9ff');
+    INSPECT.appendChild(el('div', { 'class': 'in-status', text: 'ATK ' + (p.atk != null ? p.atk : '?') + (items.length ? ' · ' + items.map(itemName).join(', ') : ' · no items') }));
+    INSPECT.appendChild(el('div', { 'class': 'in-short', text: 'Energy is your life force. A move costs 1, an attack or smash costs 0, Wait costs 1. Reach 0 and the run ends.' }));
+  } else {
+    img = spriteIcon(d.type, 28); if (img) head.appendChild(img);
+    head.appendChild(el('span', { 'class': 'in-name', text: d.name }));
+    INSPECT.appendChild(head);
+    if (d.hint) INSPECT.appendChild(el('div', { 'class': 'in-short', text: d.hint }));
+  }
+}
+function inspectShow(entEl) {
+  var col = entEl.closest('.q-board-col'), tile = entEl.closest('.tile');
+  if (!col || !tile) return;
+  if (INSPECT.parentNode !== col) col.appendChild(INSPECT);
+  inspectFill(entEl.__ent);
+  INSPECT.hidden = false;
+  var cr = col.getBoundingClientRect(), tr = tile.getBoundingClientRect(), w = INSPECT.offsetWidth, hh = INSPECT.offsetHeight;
+  var left = tr.right - cr.left + 8, top = tr.top - cr.top - 6;
+  if (left + w > cr.width) left = tr.left - cr.left - w - 8;
+  if (left < 0) left = Math.max(0, Math.min(cr.width - w, tr.left - cr.left));
+  top = Math.max(0, Math.min(cr.height - hh, top));
+  INSPECT.style.left = left + 'px'; INSPECT.style.top = top + 'px';
+}
+function inspectHide() { INSPECT.hidden = true; }
+(function () {
+  var wrap = $('#board-wrap'); if (!wrap) return;
+  wrap.addEventListener('mouseover', function (ev) { var t = ev.target && ev.target.closest ? ev.target.closest('.ent') : null; if (t && t.__ent) inspectShow(t); });
+  wrap.addEventListener('mouseout', function (ev) { var t = ev.target && ev.target.closest ? ev.target.closest('.ent') : null; if (!t) return; var to = ev.relatedTarget; if (to && t.contains(to)) return; inspectHide(); });
+  wrap.addEventListener('mousedown', inspectHide);
+})();
+
+/* =========================================================
+   3. State & persistence
+   ========================================================= */
+var state = { index: 0, answers: {}, finished: false, screen: 'hero' };
+var currentBoard = null, lastResult = null;
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 1, ids: PUZZLES.map(function (p) { return p.id; }), index: state.index, answers: state.answers, finished: state.finished })); } catch (e) { /* storage unavailable */ }
+}
+function load() {
+  try {
+    var s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!s || s.v !== 1 || !Array.isArray(s.ids)) return null;
+    var ids = PUZZLES.map(function (p) { return p.id; });
+    if (s.ids.length !== ids.length || s.ids.some(function (id, i) { return id !== ids[i]; })) return null; // puzzle set changed
+    return s;
+  } catch (e) { return null; }
+}
+function resetRun() { state.index = 0; state.answers = {}; state.finished = false; save(); }
+function answeredCount() { return PUZZLES.filter(function (p) { return !!state.answers[p.id]; }).length; }
+
+/* =========================================================
+   4. Screens
+   ========================================================= */
+function showScreen(name) {
+  state.screen = name;
+  $$('.screen').forEach(function (s) { s.classList.toggle('active', s.id === 'screen-' + name); });
+  document.body.setAttribute('data-screen', name);
+  refit();
+  window.scrollTo(0, 0);
+}
+function startRun(fresh) {
+  if (fresh) resetRun();
+  showScreen('quiz');
+  renderPuzzle(state.index);
+}
+
+/* ---- Hero ---- */
+function heroPuzzleIndex() { // meta.heroPuzzle names the preview board (also used for the OG image); falls back to the first puzzle
+  var idx = -1;
+  if (META.heroPuzzle) PUZZLES.forEach(function (p, i) { if (p.id === META.heroPuzzle) idx = i; });
+  return idx < 0 ? 0 : idx;
+}
+var HERO_TILE = 30;               // both landing boards share one tile size so the two panels stay the same height
+var BUILDER_URL = './builder.html';
+/* Maze Builder preview: a hand-written sample floor in the puzzle shape, drawn by the same renderer as the quiz boards */
+var BUILDER_SAMPLE = (function () {
+  var rows = [
+    '##############',
+    '#............#',
+    '#.##....#....#',
+    '#......##..#.#',
+    '#..#.........#',
+    '#..#..##.....#',
+    '#........#...#',
+    '#............#',
+    '##############'
+  ];
+  function E(type, x, y, hp, extra) { return Object.assign({ type: type, x: x, y: y, hp: hp, maxHp: hp, phase: 'idle', turns: 0, target: null, shield: 0 }, extra || {}); }
+  return {
+    id: 'builder-sample', title: 'Sample floor', energy: 100, maxEnergy: 100, atk: 20, items: [], cues: [],
+    board: { w: rows[0].length, h: rows.length, tiles: rows.map(function (r) { return r.split('').map(function (c) { return c === '#' ? 1 : 0; }); }) },
+    player: { x: 1, y: 4 },
+    enemies: [
+      E('mediumslime', 5, 3, 25, { phase: 'charge', turns: 1, target: { x: 4, y: 3 } }),
+      E('bat', 10, 1, 30),
+      E('skelesoldier', 7, 6, 60, { phase: 'charge', turns: 2, target: { x: 7, y: 7 } }),
+      E('ghost1', 11, 5, 0),
+      E('skelearcher', 12, 2, 20),
+      E('smallslime', 4, 6, 15, { hp: 8 })
+    ],
+    objects: [{ type: 'pot', x: 3, y: 1 }, { type: 'pot', x: 8, y: 7 }, { type: 'crate', x: 12, y: 3 }, { type: 'corn_stalk', x: 6, y: 4 }, { type: 'chest', x: 1, y: 7 }, { type: 'stairs', x: 12, y: 7 }],
+    pickups: [{ type: 'golden_corn', x: 8, y: 4, frozen: 0 }, { type: 'golden_corn', x: 2, y: 6, frozen: 0 }, { type: 'small_energy_orb', x: 10, y: 7, frozen: 0 }, { type: 'treasure', x: 12, y: 1, frozen: 0 }],
+    traps: [{ type: 'spike', x: 4, y: 1 }, { type: 'spike', x: 9, y: 5 }]
+  };
+})();
+function renderBuilderPreview() {
+  var s = BUILDER_SAMPLE, box = $('#build-board-inner'), cap = $('#build-caption');
+  if (!box) return;
+  renderBoard(s, box, { mini: true, maxTile: HERO_TILE });
+  var corn = s.pickups.filter(function (q) { return q.type === 'golden_corn'; }).length;
+  clear(cap); append(cap, [el('b', { text: s.title }), ' - ' + s.enemies.length + ' enemies, ' + s.traps.length + ' spikes, ' + corn + ' Golden Corn. Click to open.']);
+}
+/* OG share image: open index.html#og at 1200x630 and screenshot (see README) */
+function renderOg() {
+  document.body.classList.add('og-mode');
+  var p = PUZZLES[heroPuzzleIndex()];
+  var root = el('div', { id: 'og-root', 'class': 'og' },
+    el('div', { 'class': 'og-outline' }),
+    el('div', { 'class': 'og-left' },
+      el('span', { 'class': 'kicker', text: '🌽 Maze of Gains · Deed Season' }),
+      el('h1', { 'class': 'og-title', text: 'Build or Survive' }),
+      el('p', { 'class': 'og-tagline', text: 'Survive 10 real Maze of Gains positions. Build your own floor and dare your friends.' }),
+      el('div', { 'class': 'og-note', text: '2 games · real rules · 1 link' })),
+    el('div', { 'class': 'og-right' }, el('div', { 'class': 'hero-board' }, el('span', { 'class': 'live-tag', text: 'LIVE · REAL RUN' }), el('div', { 'class': 'board-wrap', id: 'og-board-inner' }))));
+  document.body.appendChild(root);
+  if (p) renderBoard(p, $('#og-board-inner'), { mini: true, maxTile: 38 });
+}
+function renderHero() {
+  $('#hero-title').textContent = META.title || 'Would You Survive?';
+  $('#hero-tagline').textContent = META.tagline || '';
+  $('#hero-note').textContent = META.note || (TOTAL + ' positions · ~' + Math.max(1, Math.round(TOTAL * 0.3)) + ' minutes · real runs, real outcomes');
+  $('#footer-text').textContent = META.footer || $('#footer-text').textContent;
+  var sc = $('#hero-scoring'); clear(sc);
+  append(sc, ['★ Perfect move = ', el('b', { text: SCORING.best + ' pts' }), ' · ✔ Survive = ', el('b', { text: SCORING.ok + ' pt' + (SCORING.ok === 1 ? '' : 's') }), ' · ☠ Damage or death = ', el('b', { text: (SCORING.bad || 0) + '' })]);
+  if (TOTAL) {
+    var hi = heroPuzzleIndex(), p0 = PUZZLES[hi];
+    renderBoard(p0, $('#hero-board-inner'), { mini: true, maxTile: HERO_TILE });
+    $('#hero-live').textContent = 'LIVE · POSITION ' + (hi + 1);
+    clear($('#hero-caption')); append($('#hero-caption'), [el('b', { text: p0.title || '' }), ' - ' + p0.energy + '/' + p0.maxEnergy + ' energy. Tap the board to play.']);
+  } else {
+    clear($('#hero-board-inner')).appendChild(el('div', { 'class': 'error-box', text: 'No puzzles loaded. Check that puzzles.js sets window.MOG_PUZZLES.puzzles.' }));
+  }
+  renderBuilderPreview();
+  updateHeroButtons();
+}
+function updateHeroButtons() {
+  var box = clear($('#hero-actions'));
+  if (!TOTAL) return;
+  var n = answeredCount();
+  if (state.finished) {
+    box.appendChild(el('button', { 'class': 'btn btn-primary btn-xl', type: 'button', onclick: function () { showScreen('result'); renderResult(); } }, 'SEE MY RESULT ▶'));
+    box.appendChild(el('button', { 'class': 'btn btn-ghost btn-lg', type: 'button', onclick: function () { startRun(true); } }, META.playAgain || 'Play again'));
+  } else if (n > 0) {
+    box.appendChild(el('button', { 'class': 'btn btn-primary btn-xl', type: 'button', onclick: function () { startRun(false); } }, 'CONTINUE ' + (Math.min(state.index + 1, TOTAL)) + '/' + TOTAL + ' ▶'));
+    box.appendChild(el('button', { 'class': 'btn btn-ghost btn-lg', type: 'button', onclick: function () { startRun(true); } }, '↺ Restart'));
+  } else {
+    box.appendChild(el('button', { 'class': 'btn btn-primary btn-xl', type: 'button', id: 'btn-start', onclick: function () { startRun(true); } }, (META.startCta || 'Start').toUpperCase() + ' ▶'));
+  }
+}
+
+/* ---- Quiz ---- */
+function updateProgress() {
+  var n = answeredCount();
+  $('#pbar-fill').style.width = (TOTAL ? n / TOTAL * 100 : 0) + '%';
+  var pb = $('#pbar'); pb.setAttribute('aria-valuemax', TOTAL); pb.setAttribute('aria-valuenow', n);
+  $('#plabel').textContent = (state.index + 1) + '/' + TOTAL;
+  var st = 0, i = state.index, se = $('#streak');
+  if (i >= 0 && PUZZLES[i] && !state.answers[PUZZLES[i].id]) i--;
+  for (; i >= 0; i--) { var a = state.answers[PUZZLES[i].id]; if (a && normVerdict(a.verdict) === 'best') st++; else break; }
+  if (se) { se.hidden = st < 2; se.textContent = '🔥 ' + st + ' perfect in a row'; }
+}
+function renderStats(p) { // items only: the rest of the run state lives in the hook text and on the board (hover your hero)
+  var s = clear($('#stats'));
+  var items = Array.isArray(p.items) ? p.items : [], counts = {}, order = [];
+  items.forEach(function (id) { if (!counts[id]) { counts[id] = 0; order.push(id); } counts[id]++; }); // "Single Shot x2"
+  s.hidden = !order.length;
+  if (!order.length) return;
+  s.appendChild(el('span', { 'class': 'stats-lbl', text: 'ITEMS' }));
+  order.forEach(function (id) { var ic = spriteIcon(id, 20); s.appendChild(el('span', { 'class': 'chip chip-item', title: ITEM_HINTS[id] || 'Item in inventory' }, ic || el('span', { text: '🎒' }), el('span', { text: itemName(id) + (counts[id] > 1 ? ' ×' + counts[id] : '') }))); });
+}
+function isBlocked(o) { return !!o && (o.kind === 'blocked' || o.verdict === 'blocked'); }
+function optKind(o, id) { return isBlocked(o) ? 'blocked' : (o.kind || (id === 'pass' ? 'pass' : id === 'item' ? 'item' : 'move')); }
+function actionWord(o, kind) { // one word for the tile tooltip
+  var map = { move: 'Step', attack: 'Attack', 'break': 'Smash', pass: 'Wait', pickup: 'Grab', blocked: 'Blocked' };
+  return map[kind] || String(o.label || '').split(/\s+/)[0] || pretty(kind);
+}
+function setHL(id, on) { // hovering a tile highlights its list row and vice versa
+  $$('#board-wrap .act[data-id="' + id + '"], #opt-list .opt[data-id="' + id + '"]').forEach(function (n) { n.classList.toggle('hl', on); });
+}
+function hoverSync(n, id) {
+  ['mouseenter', 'focus'].forEach(function (ev) { n.addEventListener(ev, function () { setHL(id, true); }); });
+  ['mouseleave', 'blur'].forEach(function (ev) { n.addEventListener(ev, function () { setHL(id, false); }); });
+}
+/* On-board control: a subtle outline + corner glyph on the tile the press goes to (Wait = your own tile); the word lives in the tooltip */
+function actEl(o, id) {
+  var kind = optKind(o, id), label = o.label || pretty(id);
+  var n = el('button', { 'class': 'act act-' + id + ' act-' + kind, type: 'button', 'data-id': id,
+    title: actionWord(o, kind) + ' - ' + label + (o.sub ? ' (' + o.sub + ')' : ''), 'aria-label': label + (o.sub ? ', ' + o.sub : '') });
+  n.appendChild(el('span', { 'class': 'act-glyph', 'aria-hidden': 'true', text: id === 'pass' ? '◎' : (ARROWS[id] || '•') }));
+  n.addEventListener('click', function () { answer(id); });
+  hoverSync(n, id);
+  return n;
+}
+/* The list row: the primary readable control */
+function optionButton(o, id, extraSub) {
+  var blocked = isBlocked(o), kind = optKind(o, id), label = o.label || pretty(id), sub = [o.sub, extraSub].filter(Boolean).join(' · ');
+  var btn = el('button', { 'class': 'opt opt-' + id, type: 'button', 'data-id': id, 'data-kind': kind, disabled: blocked,
+    title: (KIND_LABEL[kind] || pretty(kind)) + ': ' + label + (o.sub ? ' (' + o.sub + ')' : ''),
+    'aria-label': label + (o.sub ? ', ' + o.sub : '') + (blocked ? ', not possible' : '') });
+  btn.appendChild(el('span', { 'class': 'opt-arrow', 'aria-hidden': 'true', text: blocked ? '✕' : (ARROWS[id] || '•') }));
+  btn.appendChild(el('span', { 'class': 'opt-text' }, el('span', { 'class': 'opt-label', text: label }), sub ? el('span', { 'class': 'opt-sub', text: sub }) : null));
+  btn.appendChild(el('span', { 'class': 'opt-kind', text: KIND_LABEL[kind] || pretty(kind) }));
+  if (!blocked) btn.addEventListener('click', function () { answer(id); });
+  hoverSync(btn, id);
+  return btn;
+}
+function itemKeyFor(o, p) { // which held item this action uses: the item whose name appears in the option label
+  var items = Array.isArray(p.items) ? p.items : [], lab = String(o.label || '').toLowerCase(), i;
+  for (i = 0; i < items.length; i++) if (lab.indexOf(itemName(items[i]).toLowerCase()) >= 0) return items[i];
+  return items[0] || null;
+}
+function itemButton(o, p) {
+  var blocked = isBlocked(o), key = itemKeyFor(o, p), icon = key ? spriteIcon(key, 30) : null;
+  var label = /^use\b/i.test(o.label || '') ? o.label : 'Use ' + (o.label || (key ? itemName(key) : 'item'));
+  var btn = el('button', { 'class': 'opt opt-item', type: 'button', 'data-id': 'item', 'data-kind': 'item', disabled: blocked,
+    title: 'Item: ' + label + (o.sub ? ' (' + o.sub + ')' : ''), 'aria-label': label + (o.sub ? ', ' + o.sub : '') + (blocked ? ', not possible' : '') });
+  btn.appendChild(el('span', { 'class': 'opt-icon', 'aria-hidden': 'true' }, icon || el('span', { 'class': 'opt-arrow', text: '✦' })));
+  btn.appendChild(el('span', { 'class': 'opt-text' }, el('span', { 'class': 'opt-label', text: label }), o.sub ? el('span', { 'class': 'opt-sub', text: o.sub }) : null));
+  btn.appendChild(el('span', { 'class': 'opt-kind', text: 'Item · key I' }));
+  if (!blocked) btn.addEventListener('click', function () { answer('item'); });
+  hoverSync(btn, 'item');
+  return btn;
+}
+function renderOptions(p) {
+  var opts = Array.isArray(p.options) ? p.options : [], byId = {}, pl = p.player || {}, board = currentBoard;
+  opts.forEach(function (o) { if (o && o.id) byId[o.id] = o; });
+  // 1. outlines on the reachable neighbouring tiles (blocked = nothing) + Wait on the player's own tile
+  if (board) {
+    ['up', 'left', 'right', 'down'].forEach(function (id) {
+      var o = byId[id], d = DIRS[id]; if (!o || isBlocked(o)) return;
+      var tile = board.querySelector('.tile[data-x="' + (pl.x + d[0]) + '"][data-y="' + (pl.y + d[1]) + '"]');
+      if (tile) tile.appendChild(actEl(o, id));
+    });
+    var mine = board.querySelector('.tile.has-player');
+    if (byId.pass && !isBlocked(byId.pass) && mine) mine.appendChild(actEl(byId.pass, 'pass'));
+  }
+  // 2. the list: every move, including the item
+  var list = clear($('#opt-list')); list.classList.remove('answered');
+  function restNote(o, id) { // the game shows nothing for rest, so the list row says it
+    var d = DIRS[id]; if (!d || optKind(o, id) !== 'attack') return '';
+    var resting = (Array.isArray(p.enemies) ? p.enemies : []).some(function (e) { return e.x === pl.x + d[0] && e.y === pl.y + d[1] && e.phase === 'rest'; });
+    return resting ? 'resting' : '';
+  }
+  ['up', 'left', 'right', 'down', 'pass'].forEach(function (id) { if (byId[id]) list.appendChild(optionButton(byId[id], id, restNote(byId[id], id))); });
+  if (byId.item) list.appendChild(itemButton(byId.item, p));
+  $('#keys-hint').hidden = false; $('#side-help').hidden = false;
+  $('#side-title').textContent = 'YOUR MOVE';
+  $('#side-sub').textContent = 'list or board - same moves';
+}
+function renderPuzzle(i) {
+  var p = PUZZLES[i];
+  if (!p) return finishRun();
+  state.index = i;
+  $('#q-num').textContent = 'POSITION ' + (i + 1) + ' OF ' + TOTAL;
+  $('#q-title').textContent = p.title || 'Untitled position';
+  $('#q-hook').textContent = p.hook || '';
+  // mechanic: short tag -> chip; long sentence -> note under the hook
+  var mech = String(p.mechanic || ''), chip = $('#q-mech'), lng = $('#q-mech-long');
+  chip.hidden = !mech || mech.length > 40; lng.hidden = !mech || mech.length <= 40;
+  chip.textContent = '🧩 ' + mech;
+  clear(lng); if (!lng.hidden) append(lng, [el('b', { text: 'Mechanic: ' }), mech]);
+  renderStats(p);
+  currentP = p; inspectHide();
+  currentBoard = renderBoard(p, $('#board-wrap'));
+  renderOptions(p);
+  var fb = $('#feedback'); fb.hidden = true; clear(fb);
+  updateProgress();
+  var a = state.answers[p.id];
+  if (a) { var opt = findOption(p, a.option); if (opt) showFeedback(p, opt, true); }
+}
+function answer(id) {
+  if (state.screen !== 'quiz') return;
+  var p = PUZZLES[state.index];
+  if (!p) return;
+  var opt = findOption(p, id);
+  if (!opt || opt.kind === 'blocked' || opt.verdict === 'blocked') return;
+  if (state.answers[p.id]) { if (state.answers[p.id].option !== opt.id) whatIf(p, opt); return; } // answered: explore the other moves
+  state.answers[p.id] = { option: opt.id, verdict: normVerdict(opt.verdict) };
+  save();
+  SFX.play('blip');
+  showFeedback(p, opt, false);
+}
+/* After the answer, every other legal move can be tried without changing the score */
+function whatIf(p, opt) {
+  var box = $('#whatif'); if (!box) return;
+  var v = normVerdict(opt.verdict), V = VERDICTS[v] || VERDICTS.bad, dmg = Number(opt.dmg) || 0;
+  clear(box); box.hidden = false; box.className = 'fb-block fb-whatif'; box.style.setProperty('--vc', V.color);
+  append(box, [
+    el('span', { 'class': 'fb-tag', text: 'What if: ' + (opt.label || pretty(opt.id)) }),
+    el('p', {}, el('b', { text: V.icon + ' ' + V.title + '. ' }), dmg ? '−' + dmg + ' Energy' + (opt.energyAfter != null ? ', ' + opt.energyAfter + ' left. ' : '. ') : 'No damage. ', opt.explain || ''),
+    el('span', { 'class': 'fb-note', text: 'Exploring only. Your score stays as pressed.' })
+  ]);
+  $$('#opt-list .opt').forEach(function (b) { b.classList.toggle('peek', b.getAttribute('data-id') === opt.id); });
+  SFX.play('blip');
+}
+function animatePlayer(board, opt) {
+  var pl = board.querySelector('.player');
+  if (!pl || REDUCED_MOTION) return;
+  var d = DIRS[opt.id];
+  if (!d) { pl.classList.add('bob'); return; }
+  pl.style.setProperty('--mx', d[0]); pl.style.setProperty('--my', d[1]);
+  pl.classList.add(opt.kind === 'move' ? 'moved' : 'lunge');
+}
+function showFeedback(p, opt, instant) {
+  var v = normVerdict(opt.verdict), V = VERDICTS[v] || VERDICTS.bad, pts = SCORING[v] || 0;
+  var best = bestOption(p);
+  // buttons
+  $('#opt-list').classList.add('answered'); $('#side-help').hidden = true;
+  $$('#opt-list .opt, #board-wrap .act').forEach(function (b) {
+    var mine = b.getAttribute('data-id') === opt.id, canPeek = !b.classList.contains('act') && !mine && !b.disabled;
+    b.disabled = !canPeek;
+    b.classList.toggle('chosen', mine); b.classList.toggle('whatif', canPeek); b.classList.remove('peek');
+    if (canPeek) { var k = b.querySelector('.opt-kind'); if (k) k.textContent = 'What if?'; b.title = 'What if you had pressed this? Your score stays.'; }
+    if (mine) b.setAttribute('data-verdict', v);
+    if (best && b.getAttribute('data-id') === best.id && v !== 'best') b.classList.add('is-answer');
+  });
+  $('#keys-hint').hidden = true;
+  $('#side-title').textContent = 'RESULT';
+  $('#side-sub').textContent = 'danger tiles revealed · try the other moves';
+  // board reveal + outcome animation
+  var board = currentBoard;
+  if (board) {
+    board.classList.add('revealed'); board.classList.add('answered');
+    if (!instant) animatePlayer(board, opt);
+    var cls = v === 'lethal' ? 'lethal' : v === 'bad' ? 'hit' : 'safe';
+    setTimeout(function () { board.classList.add(cls); if (!instant) SFX.play(v); }, instant ? 0 : (opt.kind === 'move' ? 380 : 220));
+  }
+  // feedback card
+  var dmg = Number(opt.dmg) || 0, enAfter = opt.energyAfter != null ? opt.energyAfter : '?';
+  var isLast = state.index + 1 >= TOTAL;
+  var fb = $('#feedback');
+  fb.className = 'feedback ' + V.cls + (instant ? ' instant' : '');
+  clear(fb);
+  append(fb, [
+    el('div', { 'class': 'fb-head' },
+      el('span', { 'class': 'fb-icon', 'aria-hidden': 'true', text: V.icon }),
+      el('div', { 'class': 'fb-titles' }, el('div', { 'class': 'fb-verdict', text: V.title }), el('div', { 'class': 'fb-choice' }, 'You pressed: ', el('b', { text: opt.label || pretty(opt.id) }))),
+      el('span', { 'class': 'fb-pts', text: (pts > 0 ? '+' : '') + pts + ' pt' + (pts === 1 ? '' : 's') })),
+    el('div', { 'class': 'fb-stats' },
+      el('span', { 'class': 'chip chip-dmg' + (dmg ? ' hurt' : ''), text: dmg ? '💥 −' + dmg + ' energy' : '🛡 no damage' }),
+      el('span', { 'class': 'chip chip-energy' }, '⚡ after:', el('span', {}, el('b', { text: enAfter }), '/' + (p.maxEnergy != null ? p.maxEnergy : '?')))),
+    opt.explain ? el('p', { 'class': 'fb-explain', text: opt.explain }) : null,
+    el('div', { id: 'whatif', hidden: true }),
+    p.mechanicNote ? el('p', { 'class': 'fb-rule' }, el('span', { 'class': 'fb-tag', text: 'Rule' }), String(p.mechanicNote)) : null,
+    (best && v !== 'best') ? el('div', { 'class': 'fb-block fb-best' }, el('span', { 'class': 'fb-tag', text: 'Best move' }), el('p', {}, el('b', { text: best.label || pretty(best.id) }), best.explain ? ' - ' + best.explain : ''), el('span', { 'class': 'fb-note', text: 'That tile is outlined green on the board.' })) : null,
+    p.reality ? el('div', { 'class': 'fb-block fb-reality' }, el('span', { 'class': 'fb-tag', text: 'What actually happened' }), el('p', { text: stripPrefix(p.reality, /^\s*what actually happened\s*:\s*/i) })) : null,
+    p.lesson ? el('div', { 'class': 'fb-block fb-lesson' }, el('span', { 'class': 'fb-tag', text: 'Lesson' }), el('p', { text: stripPrefix(p.lesson, /^\s*lesson\s*:\s*/i) })) : null,
+    el('div', { 'class': 'fb-actions' }, el('button', { 'class': 'btn btn-primary btn-xl', type: 'button', id: 'btn-next', onclick: nextPuzzle }, isLast ? 'SEE MY RESULT ▶' : 'NEXT POSITION ▶'))
+  ]);
+  fb.hidden = false;
+  updateProgress();
+  if (!instant) requestAnimationFrame(function () { fb.scrollIntoView({ behavior: REDUCED_MOTION ? 'auto' : 'smooth', block: 'nearest' }); });
+}
+function nextPuzzle() {
+  SFX.play('click');
+  var i = state.index + 1;
+  if (i >= TOTAL) return finishRun();
+  state.index = i; save();
+  renderPuzzle(i);
+  var card = $('#quiz-card');
+  if (card.getBoundingClientRect().top < 0) card.scrollIntoView({ behavior: REDUCED_MOTION ? 'auto' : 'smooth', block: 'start' });
+}
+function finishRun() { state.finished = true; save(); showScreen('result'); renderResult(); }
+
+/* ---- Result ---- */
+function computeResult() {
+  var rows = PUZZLES.map(function (p, i) {
+    var a = state.answers[p.id], v = a ? normVerdict(a.verdict) : 'lethal';
+    if (!VERDICTS[v]) v = 'lethal';
+    return { i: i, p: p, v: v, opt: a ? findOption(p, a.option) : null, best: bestOption(p), pts: SCORING[v] || 0 };
+  });
+  var survived = rows.filter(function (r) { return r.v === 'best' || r.v === 'ok'; }).length;
+  var perfect = rows.filter(function (r) { return r.v === 'best'; }).length;
+  var points = rows.reduce(function (s, r) { return s + r.pts; }, 0);
+  var tierIdx = -1; TIERS.forEach(function (t, i) { if (points >= (t.min || 0)) tierIdx = i; });
+  var tier = TIERS[tierIdx] || TIERS[0] || { name: 'Adventurer', blurb: '' };
+  var tierColor = TIER_COLORS[Math.max(0, Math.min(TIER_COLORS.length - 1, tierIdx < 0 ? 0 : (TIERS.length <= TIER_COLORS.length ? tierIdx + (TIER_COLORS.length - TIERS.length) : tierIdx)))];
+  return { rows: rows, survived: survived, perfect: perfect, points: points, tier: tier, tierColor: tierColor, total: TOTAL, max: MAX_POINTS };
+}
+function shareText(R) {
+  var t = (META.share && META.share.text) || 'I survived {survived}/{total} positions in Maze of Gains ({points} pts, {tier}). Can you? {url}';
+  var url = META.url || location.href.split('#')[0];
+  var map = { survived: R.survived, total: R.total, perfect: R.perfect, points: R.points, max: R.max, tier: R.tier.name, url: url };
+  return t.replace(/\{(\w+)\}/g, function (m, k) { return k in map ? String(map[k]) : m; });
+}
+function shareUrl(R) {
+  var tags = (META.share && Array.isArray(META.share.hashtags)) ? META.share.hashtags : [];
+  var u = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText(R));
+  if (tags.length) u += '&hashtags=' + encodeURIComponent(tags.join(','));
+  return u;
+}
+function renderResult() {
+  var R = computeResult(); lastResult = R;
+  $('#result-title').textContent = META.resultHeadline || 'Run complete. Here\'s the damage.';
+  $('#r-survived').textContent = R.survived; $('#r-total').textContent = R.total;
+  $('#r-perfect').textContent = R.perfect + '/' + R.total;
+  $('#r-points').textContent = R.points + '/' + R.max;
+  $('#r-tier').textContent = R.tier.name || '-'; $('#r-blurb').textContent = R.tier.blurb || '';
+  $('#r-tier-box').style.setProperty('--tc', R.tierColor);
+  $('#lbl-save').textContent = META.copyCard || META.saveCard || 'Copy card';
+  $('#lbl-share').textContent = META.shareOnX || 'Share on X';
+  $('#lbl-again').textContent = META.playAgain || 'Play again';
+  var list = clear($('#recap'));
+  R.rows.forEach(function (r) {
+    var V = VERDICTS[r.v];
+    list.appendChild(el('li', { 'class': V.cls, style: '--vc:' + V.color },
+      el('span', { 'class': 'recap-num', text: String(r.i + 1).padStart(2, '0') }),
+      el('div', { 'class': 'recap-body' }, el('b', { text: r.p.title || 'Position ' + (r.i + 1) }),
+        el('span', { 'class': 'recap-sub' }, 'You: ' + (r.opt ? (r.opt.label || r.opt.id) : '-'), (r.v !== 'best' && r.best) ? ' · Best: ' + (r.best.label || r.best.id) : '', ' · ' + r.pts + ' pt' + (r.pts === 1 ? '' : 's'))),
+      el('span', { 'class': 'recap-pill', text: V.short })));
+  });
+  $('#btn-share').href = shareUrl(R);
+  drawCard(R);
+  if (document.fonts && document.fonts.load) {
+    Promise.all(['28px "Press Start 2P"', '900 150px Nunito', '700 22px Nunito', '600 25px Nunito', '22px "Press Start 2P"'].map(function (f) { return document.fonts.load(f); }))
+      .then(function () { if (lastResult === R) drawCard(R); }, function () {});
+  }
+}
+
+/* ---- Share card (1200x630 canvas) ---- */
+function rr(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function wrapText(ctx, text, x, y, maxW, lh, maxLines) {
+  var words = String(text || '').split(/\s+/), lines = [], line = '', i, t;
+  for (i = 0; i < words.length; i++) { t = line ? line + ' ' + words[i] : words[i]; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = words[i]; } else line = t; }
+  if (line) lines.push(line);
+  if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, '') + '…'; }
+  lines.forEach(function (l, i) { ctx.fillText(l, x, y + i * lh); });
+  return lines.length;
+}
+function statTile(ctx, x, y, w, h, label, value, color, PIX, BODY) {
+  ctx.fillStyle = 'rgba(255,255,255,.06)'; rr(ctx, x, y, w, h, 16); ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = color; ctx.stroke();
+  ctx.fillStyle = color; ctx.font = '13px ' + PIX; ctx.fillText(label, x + 22, y + 20);
+  ctx.fillStyle = '#ffffff'; ctx.font = '900 50px ' + BODY; ctx.fillText(value, x + 20, y + 44);
+}
+function drawCard(R) {
+  var c = $('#share-canvas'); if (!c || !c.getContext) return;
+  var ctx = c.getContext('2d'), W = c.width, H = c.height, i, g;
+  var PIX = '"Press Start 2P","Courier New",monospace', BODY = 'Nunito,"Segoe UI",Arial,sans-serif';
+  ctx.clearRect(0, 0, W, H);
+  g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1d1752'); g.addColorStop(1, '#0a0820'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  g = ctx.createRadialGradient(W * .5, -120, 40, W * .5, -120, 780); g.addColorStop(0, 'rgba(110,80,255,.6)'); g.addColorStop(1, 'rgba(110,80,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(255,255,255,.045)'; ctx.lineWidth = 1; ctx.beginPath();
+  for (i = 0.5; i < W; i += 40) { ctx.moveTo(i, 0); ctx.lineTo(i, H); } for (i = 0.5; i < H; i += 40) { ctx.moveTo(0, i); ctx.lineTo(W, i); } ctx.stroke();
+  var seed = 42; function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+  for (i = 0; i < 90; i++) { var kx = rnd() * W, ky = rnd() * H, ks = 4 + rnd() * 9; ctx.fillStyle = 'rgba(255,196,45,' + (.06 + rnd() * .22).toFixed(2) + ')'; rr(ctx, kx, ky, ks, ks * 1.3, 2.5); ctx.fill(); }
+  ctx.lineWidth = 7; ctx.strokeStyle = '#FFC42D'; ctx.shadowColor = 'rgba(255,196,45,.55)'; ctx.shadowBlur = 24; rr(ctx, 26, 26, W - 52, H - 52, 30); ctx.stroke(); ctx.shadowBlur = 0;
+  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,196,45,.25)'; rr(ctx, 40, 40, W - 80, H - 80, 22); ctx.stroke();
+  ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+  ctx.font = '58px ' + BODY; ctx.fillStyle = '#fff'; ctx.fillText('🌽', 66, 64);
+  ctx.fillStyle = '#FFC42D'; ctx.font = '28px ' + PIX; ctx.shadowColor = 'rgba(255,196,45,.6)'; ctx.shadowBlur = 16; ctx.fillText(String(META.title || 'Would You Survive?').toUpperCase(), 146, 72); ctx.shadowBlur = 0;
+  ctx.fillStyle = '#c4bde6'; ctx.font = '700 22px ' + BODY; ctx.fillText('Maze of Gains · Deed Season', 148, 112);
+  var big = R.survived + '/' + R.total;
+  ctx.fillStyle = '#ffffff'; ctx.font = '900 150px ' + BODY; ctx.fillText(big, 62, 150);
+  var bw = ctx.measureText(big).width;
+  ctx.fillStyle = '#43e8a4'; ctx.font = '22px ' + PIX; ctx.fillText('SURVIVED', 62 + bw + 26, 262);
+  ctx.fillStyle = R.tierColor; ctx.font = '30px ' + PIX; ctx.shadowColor = R.tierColor; ctx.shadowBlur = 14; ctx.fillText(String(R.tier.name || '').toUpperCase(), 66, 346); ctx.shadowBlur = 0;
+  ctx.fillStyle = '#ece8ff'; ctx.font = '600 25px ' + BODY; wrapText(ctx, R.tier.blurb || '', 66, 398, 690, 34, 3);
+  statTile(ctx, 830, 160, 300, 112, 'POINTS', R.points + '/' + R.max, '#FFC42D', PIX, BODY);
+  statTile(ctx, 830, 296, 300, 112, 'PERFECT MOVES', R.perfect + '/' + R.total, '#3fd9ff', PIX, BODY);
+  var gap = 10, sq = Math.min(44, Math.floor((700 - (R.total - 1) * gap) / Math.max(1, R.total))), x0 = 66, y0 = 522;
+  R.rows.forEach(function (r, i) {
+    var col = (VERDICTS[r.v] || VERDICTS.bad).color, x = x0 + i * (sq + gap);
+    ctx.fillStyle = col; rr(ctx, x, y0, sq, sq, 9); ctx.fill();
+    ctx.fillStyle = (r.v === 'ok' || r.v === 'best') ? '#1a1440' : '#fff'; ctx.font = '900 ' + Math.round(sq * .45) + 'px ' + BODY; ctx.textAlign = 'center'; ctx.fillText(String(i + 1), x + sq / 2, y0 + sq * .26); ctx.textAlign = 'left';
+  });
+  var url = String(META.url || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  ctx.textAlign = 'right'; ctx.fillStyle = '#b9b3d9'; ctx.font = '700 22px ' + BODY; ctx.fillText(url, W - 70, 534); ctx.textAlign = 'left';
+}
+var toastTimer = null;
+function toast(msg, ms) {
+  var t = $('#toast'); if (!t) return;
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, ms || 4200);
+}
+function canvasBlobSync(c) { // synchronous, so the clipboard write stays inside the click (Safari requires that)
+  var d = c.toDataURL('image/png').split(',')[1], bin = atob(d), n = bin.length, u = new Uint8Array(n), i;
+  for (i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
+  return new Blob([u], { type: 'image/png' });
+}
+function copyCard() {
+  var c = $('#share-canvas'); if (!c) return;
+  function fail() { saveCard(); toast('Clipboard is not available here. Right-click the card and choose Copy image.', 6000); }
+  try {
+    if (!(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem)) return fail();
+    var blob = canvasBlobSync(c);
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(function () { toast('Card copied. Paste it into your post with Ctrl+V.'); SFX.play('ok'); }, fail);
+  } catch (e) { fail(); }
+}
+function saveCard() {
+  var c = $('#share-canvas'); if (!c) return;
+  var name = 'would-you-survive-' + (lastResult ? lastResult.survived + 'of' + lastResult.total : 'result') + '.png';
+  function fallback() { try { window.open(c.toDataURL('image/png'), '_blank'); } catch (e) { /* ignore */ } }
+  try {
+    c.toBlob(function (blob) {
+      if (!blob) return fallback();
+      var url = URL.createObjectURL(blob), a = el('a', { href: url, download: name });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    }, 'image/png');
+  } catch (e) { fallback(); }
+}
+
+/* =========================================================
+   5. Legend modal (built from `legend` + rendered samples)
+   ========================================================= */
+function sampleTile(entities, tileKind) {
+  var b = el('div', { 'class': 'board sample', 'aria-hidden': 'true' });
+  var key = resolveTileKey(tileKind === 'fog' ? 'tile_fog' : 'tile_floor_a');
+  var t = el('div', { 'class': 'tile ' + (tileKind === 'fog' ? 'fog r-fog' : 'floor r-floor') }), bg = el('i', { 'class': 'tbg' + (key ? '' : ' nobg') });
+  if (key) bg.style.backgroundImage = bgVar(b, key);
+  t.appendChild(bg);
+  (Array.isArray(entities) ? entities : [entities]).forEach(function (n) { t.appendChild(n); });
+  b.appendChild(t);
+  return b;
+}
+function legendRow(sample, name, desc) { return el('div', { 'class': 'legend-row' }, sample, el('div', {}, el('b', { text: name }), el('span', { text: desc }))); }
+function withCues(e) { return [enemyEl(e)].concat(enemyCueEls(e)); }
+var legendBuilt = false;
+function buildLegend() {
+  if (legendBuilt) return; legendBuilt = true;
+  var types = Object.keys(LEGEND), first = types[0] || 'enemy';
+  var soldier = types.filter(function (k) { return /skelesoldier/.test(k); })[0] || first;
+  var key = clear($('#legend-key'));
+  append(key, [
+    legendRow(sampleTile(playerEl()), 'You (Sir Jackalot)', 'Energy is your HP and your move budget. Steps cost 1, attacks cost 0.'),
+    legendRow(sampleTile(withCues({ type: first, x: 0, y: 0, hp: 30, maxHp: 70, phase: 'charge', turns: 1, target: { x: 0, y: 1 } })), 'Strike incoming', 'The orange "!" above an enemy: it strikes next turn. The bar under it is its HP.'),
+    legendRow(sampleTile(withCues({ type: first, x: 0, y: 0, hp: 35, maxHp: 35, phase: 'charge', turns: 2, target: { x: 1, y: 0 } })), 'Strike direction', 'The pink triangle sits on the edge of the attacker\'s tile, facing where it will strike.'),
+    legendRow(sampleTile(withCues({ type: soldier, x: 0, y: 0, hp: 70, maxHp: 70, phase: 'charge', turns: 1, target: { x: 0, y: -1 } })), 'Cross strike', 'Triangles on all four edges: a Soldier hits its target tile and the four tiles around itself.'),
+    legendRow(sampleTile(cueSprite('cue_target', 'cue-reveal shown')), 'Danger tile', 'After you answer, every tile the strikes cover is marked in red (our one addition to the game\'s cues).'),
+    legendRow(sampleTile(cueSprite('cue_explode', 'cue-explode')), 'Explosion', 'The game marks the 8 tiles around a boomcap on the turn before it blows.'),
+    legendRow(sampleTile(enemyEl({ type: first, hp: 50, maxHp: 50, phase: 'idle', shield: 2 })), 'Shield', 'Blue badge: blocks that many hits before HP is touched. The sprite is tinted blue.'),
+    legendRow(sampleTile(pickupEl({ type: 'golden_corn', frozen: 2 })), 'Frozen pickup', 'Ice-encased loot; hover it to see how many turns until it thaws.'),
+    legendRow(sampleTile(pickupEl({ type: 'large_energy_orb' })), 'Energy orb', 'Refills energy the moment you step on it.'),
+    legendRow(sampleTile(objectEl({ type: 'stairs' })), 'Stairs', 'Exit to the next floor.'),
+    legendRow(sampleTile(trapEl({ type: 'spike' })), 'Spikes', 'Rise every other turn. Do not stand on them when they do.'),
+    legendRow(sampleTile(objectEl({ type: 'corn_stalk' })), 'Corn stalk / pots', 'Smash for Golden Corn and loot. Smashing takes your turn.')
+  ]);
+  var list = clear($('#legend-list'));
+  if (!types.length) list.appendChild(el('div', { 'class': 'legend-row' }, el('div', {}, el('b', { text: 'No legend data' }))));
+  types.forEach(function (type) {
+    var L = LEGEND[type] || {};
+    list.appendChild(legendRow(sampleTile(enemyEl({ type: type, hp: 0, maxHp: 0, phase: 'idle' })), L.name || pretty(type), L.short || ''));
+  });
+}
+function openLegend() { buildLegend(); $('#legend-modal').hidden = false; $('#btn-legend-close').focus(); }
+function closeLegend() { $('#legend-modal').hidden = true; }
+
+/* =========================================================
+   6. Background particles, keyboard, wiring
+   ========================================================= */
+function spawnParticles() {
+  if (REDUCED_MOTION) return;
+  var wrap = $('#particles'), n = Math.min(26, Math.max(10, Math.round(window.innerWidth / 55))), colors = ['#FFC42D', '#FFC42D', '#ffe08a', '#a78bfa', '#3fd9ff'], i, s;
+  for (i = 0; i < n; i++) {
+    s = document.createElement('i');
+    s.style.cssText = '--x:' + (Math.random() * 100).toFixed(1) + '%;--s:' + (3 + Math.random() * 5).toFixed(1) + 'px;--d:' + (16 + Math.random() * 18).toFixed(1) + 's;--delay:' + (-Math.random() * 34).toFixed(1) + 's;--o:' + (.22 + Math.random() * .45).toFixed(2) + ';--pc:' + colors[i % colors.length];
+    wrap.appendChild(s);
+  }
+}
+document.addEventListener('keydown', function (e) {
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  var modalOpen = !$('#legend-modal').hidden;
+  if (e.key === 'Escape') { if (modalOpen) { closeLegend(); e.preventDefault(); } return; }
+  if (modalOpen) return;
+  var tag = (e.target && e.target.tagName) || '';
+  var onControl = /^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(tag);
+  var isEnter = e.key === 'Enter', isSpace = e.key === ' ' || e.key === 'Spacebar';
+  if (onControl && (isEnter || isSpace)) return; // let the focused control handle it
+  if (state.screen === 'hero') { if (isEnter || isSpace) { var b = $('#hero-actions .btn-primary'); if (b) { b.click(); e.preventDefault(); } } return; }
+  if (state.screen === 'result') { if (isEnter) { $('#btn-again').click(); } return; }
+  if (state.screen !== 'quiz') return;
+  var p = PUZZLES[state.index]; if (!p) return;
+  var answered = !!state.answers[p.id];
+  var map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', i: 'item', I: 'item' };
+  if (answered && (isEnter || isSpace)) { nextPuzzle(); e.preventDefault(); return; }
+  if (isSpace) { answer('pass'); e.preventDefault(); return; }
+  if (map[e.key]) { answer(map[e.key]); e.preventDefault(); }
+});
+$('#btn-brand').addEventListener('click', function () { updateHeroButtons(); showScreen('hero'); });
+$('#btn-restart').addEventListener('click', function () { if (confirm('Restart from position 1? Your current run will be cleared.')) startRun(true); });
+$('#btn-legend').addEventListener('click', openLegend);
+function renderSoundBtn() {
+  var b = $('#btn-sound'); if (!b) return;
+  var on = SFX.isOn();
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.innerHTML = (on ? '🔊 <span id="lbl-sound">Sound</span>' : '🔇 <span id="lbl-sound">Muted</span>');
+}
+$('#btn-sound').addEventListener('click', function () { SFX.set(!SFX.isOn()); renderSoundBtn(); if (SFX.isOn()) SFX.play('blip'); });
+renderSoundBtn();
+$('#btn-legend-2').addEventListener('click', openLegend);
+$('#btn-legend-close').addEventListener('click', closeLegend);
+$('#legend-modal').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeLegend(); });
+$('#btn-save').addEventListener('click', copyCard);
+$('#btn-again').addEventListener('click', function () { startRun(true); });
+var hb = $('#hero-board');
+hb.addEventListener('click', function () { var b = $('#hero-actions .btn-primary'); if (b) b.click(); });
+hb.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); var b = $('#hero-actions .btn-primary'); if (b) b.click(); } });
+var mb = $('#mode-build'); // the whole builder panel is one big link; the CTA and the preview are real anchors and handle themselves
+mb.addEventListener('click', function (e) {
+  if (e.target.closest && e.target.closest('a')) return;
+  var sel = window.getSelection ? String(window.getSelection()) : ''; if (sel) return; // the user is selecting text
+  location.href = BUILDER_URL;
+});
+
+/* =========================================================
+   7. Init: restore progress, pick the screen
+   ========================================================= */
+function init() {
+  document.title = 'Build or Survive';
+  if (location.hash === '#og') { renderOg(); return; }
+  spawnParticles();
+  renderHero();
+  var saved = load();
+  if (saved && TOTAL) {
+    state.index = Math.min(Math.max(0, saved.index | 0), TOTAL - 1);
+    state.answers = (saved.answers && typeof saved.answers === 'object') ? saved.answers : {};
+    state.finished = !!saved.finished;
+  }
+  clear($('#credit-foot')).appendChild(creditLink('credit-foot'));
+  updateHeroButtons();
+  if (TOTAL && state.finished) { showScreen('result'); renderResult(); }
+  else if (TOTAL && answeredCount() > 0) { showScreen('quiz'); renderPuzzle(state.index); }
+  else showScreen('hero');
+}
+init();
+})();
+</script>
+</body>
+</html>
